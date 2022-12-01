@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="roomba" default="roomba1" />
+
+	<!-- unzipper -->
+	<node pkg="image_transport" type="republish" name="$(arg roomba)_theta_s_republish" args="compressed raw" >
+		<remap from="in"  to="$(arg roomba)/theta_s/image_raw" />
+        <remap from="out" to="$(arg roomba)/theta_s/image_raw" />
+    </node>
+
+</launch>

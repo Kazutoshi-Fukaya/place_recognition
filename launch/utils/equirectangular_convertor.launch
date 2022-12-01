@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="roomba"      default="roomba1" />
+	<arg name="config_path" default="$(find place_recognition)/config" />
+
+	<!-- unzipper -->
+	<include file="$(find place_recognition)/launch/utils/image_unzipper.launch" >
+        <arg name="roomba" value="$(arg roomba)"/>
+    </include>
+
+	<!-- equirectangular_convertor -->
+	<arg name="theta_s_mode" default="0" />
+    <arg name="is_theta_s_visualize" default="false" />
+	<node pkg="equirectangular_convertor" type="equirectangular_convertor_node" name="$(arg roomba)_equirectangular_convertor_node" >
+		<!-- params -->
+		<param name="dual_topic_name" value="$(arg roomba)/theta_s/image_raw" />
+        <param name="equi_topic_name" value="$(arg roomba)/equirectangular/image_raw" />
+        <param name="is_visualize" value="$(arg is_theta_s_visualize)" />
+        <param name="mode" value="$(arg theta_s_mode)" />
+    </node>
+
+	<!-- rviz -->
+	<arg name="is_rviz" default="false" />
+	<group if="$(arg is_rviz)" >
+		<node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/rviz.rviz" />
+    </group>
+
+</launch>

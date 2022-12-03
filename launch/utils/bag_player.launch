@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="wait_time" default="0.0" />
+    <arg name="file_path" default="$(env HOME)/bagfiles" />
+
+	 <!-- rosbag -->
+    <node pkg="rosbag" type="play" name="play" args=" -d $(arg wait_time) $(arg file_path)/pr_roomba1.bag" />
+
+</launch>

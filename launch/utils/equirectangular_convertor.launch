@@ -8,6 +8,12 @@
         <arg name="roomba" value="$(arg roomba)"/>
     </include>
 
+	<!-- bag_player -->
+	<arg name="is_bag" default="true" />
+	<group if="$(arg is_bag)" >
+		<include file="$(find place_recognition)/launch/utils/bag_player.launch" />
+    </group>
+
 	<!-- equirectangular_convertor -->
 	<arg name="theta_s_mode" default="0" />
     <arg name="is_theta_s_visualize" default="false" />

@@ -47,3 +47,22 @@ target_link_libraries(keypoints_detector
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
 )
+
+# image_creator
+add_executable(image_creator src/image_creator.cpp)
+target_link_libraries(image_creator
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+)
+
+# bow
+add_executable(bow 
+    src/bow.cpp
+    bow/bow_vector.cpp
+    bow/scoring_object.cpp
+    bow/vocabulary.cpp
+    bow/descriptors_manipulator.cpp)
+target_link_libraries(bow
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+)

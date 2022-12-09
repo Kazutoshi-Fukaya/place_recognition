@@ -21,8 +21,8 @@
 		<!-- params -->
 		<param name="dual_topic_name" value="$(arg roomba)/theta_s/image_raw" />
         <param name="equi_topic_name" value="$(arg roomba)/equirectangular/image_raw" />
-        <param name="is_visualize" value="$(arg is_theta_s_visualize)" />
-        <param name="mode" value="$(arg theta_s_mode)" />
+        <param name="is_visualize"    value="$(arg is_theta_s_visualize)" />
+        <param name="mode"            value="$(arg theta_s_mode)" />
     </node>
 
 	<!-- rviz -->

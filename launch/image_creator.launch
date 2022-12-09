@@ -8,19 +8,16 @@
 		<arg name="is_bag"               value="true" />
 		<arg name="theta_s_mode"         value="0" />
 		<arg name="is_theta_s_visualize" value="false" />
-		<arg name="is_rviz"              value="false" />
+		<arg name="is_rviz"              value="true" />
 	</include>
 
-	<!-- keypoints_detector -->
-	<node pkg="place_recognition" type="keypoints_detector" name="keypoints_detector" output="screen" >
+    <!-- image_creator -->
+    <node pkg="place_recognition" type="image_creator" name="image_creator" output="screen" >
 		<!-- remap -->
 		<remap from="img_in" to="roomba1/equirectangular/image_raw" />
-	</node>
-
-	<!-- rviz -->
-	<arg name="is_rviz" default="true" />
-	<group if="$(arg is_rviz)" >
-		<node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/keypoints_detector.rviz" />
-    </group>
+		
+		<!-- params -->
+        <param name="FILE_PATH" value="$(find place_recognition)/img/" />
+    </node>
 
 </launch>

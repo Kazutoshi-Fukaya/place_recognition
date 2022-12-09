@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- bow -->
+    <node pkg="place_recognition" type="bow" name="bow" output="screen" >
+        <!-- params -->
+        <!-- <param name="DIR_PATH" value="$(find place_recognition)/scripts/reference_images/" /> -->
+		<param name="DIR_PATH" value="$(find place_recognition)/images/" />
+	</node>
+
+</launch>

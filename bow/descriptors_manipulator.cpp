@@ -107,3 +107,85 @@ uint32_t DescriptorsManipulator::distance_8uc1(cv::Mat& a,cv::Mat& b)
 }
 
 size_t DescriptorsManipulator::get_desc_size_bytes(cv::Mat& d) { return d.cols*d.elemSize(); }
+
+void DescriptorsManipulator::to_stream(cv::Mat& m,std::ostream& str)
+{
+    assert(m.rows == 1 || m.isContinuous());
+    int type = m.type();
+    int cols =m.cols;
+    int rows = m.rows;
+    str.write((char*)&cols,sizeof(cols));
+    str.write((char*)&rows,sizeof(rows));
+    str.write((char*)&type,sizeof(type));
+    str.write((char*)m.ptr<char>(0),m.elemSize()*m.cols);
+}
+
+void DescriptorsManipulator::from_stream(cv::Mat& m,std::istream& str)
+{
+    int type, cols, rows;
+    str.read((char*)&cols,sizeof(cols));
+    str.read((char*)&rows,sizeof(rows));
+    str.read((char*)&type,sizeof(type));
+    m.create(rows,cols,type);
+    str.read((char*)m.ptr<char>(0),m.elemSize()*m.cols);
+}
+
+std::string DescriptorsManipulator::to_string(cv::Mat& a)
+{
+    // introduce a magic value to distinguish from DBOw2
+    std::stringstream ss;
+    ss <<"dbw3 ";
+    
+    // save size and type
+    ss << a.type() << " " << a.cols << " ";
+    if(a.type() == CV_8U){
+        const unsigned char *p = a.ptr<unsigned char>();
+        for(int i = 0; i < a.cols; i++, p++) ss << (int)*p << " ";
+    }
+    else{
+        const float *p = a.ptr<float>();
+        for(int i = 0; i < a.cols; i++, p++) ss << *p << " ";
+    }
+
+    return ss.str();
+}
+
+void DescriptorsManipulator::from_string(cv::Mat& a,std::string& s)
+{
+    // check if the dbow3 is present
+    std::string ss_aux;
+    ss_aux.reserve(10);
+    for(size_t i = 0; i < 10 && i < s.size(); i++) ss_aux.push_back(s[i]);
+    if(ss_aux.find("dbw3") == std::string::npos){
+        // READ UNTIL END
+        std::stringstream ss(s);
+        int val;
+        std::vector<uchar> data;
+        data.reserve(100);
+        while(ss >> val) data.emplace_back(val);
+        
+        // copy to a
+        a.create(1,data.size(),CV_8UC1);
+        memcpy(a.ptr<char>(0),&data[0],data.size());
+    }
+    else{
+        char szSign[10];
+        int type,cols;
+        std::stringstream ss(s);
+        ss >> szSign >> type >> cols;
+        a.create(1,  cols, type);
+        if(type==CV_8UC1){
+            unsigned char *p = a.ptr<unsigned char>();
+            int n;
+            for(int i = 0; i <  a.cols; i++, p++){
+                if( ss >> n) *p = (unsigned char)n;
+            }
+        }
+        else{
+            float *p = a.ptr<float>();
+            for(int i = 0; i <  a.cols; i++, p++){
+                if(!(ss >> *p)) std::cerr<< "Error reading. Unexpected EOF. DescManip::fromString" << std::endl;
+            }
+        }
+    }
+}

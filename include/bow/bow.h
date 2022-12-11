@@ -17,7 +17,8 @@ class BoW
 {
 public:
     BoW() :
-        private_nh_("~")
+        private_nh_("~"),
+		file_name_(std::string(""))
     {
         std::string mode;
         private_nh_.param("MODE",mode,{std::string("orb")});
@@ -30,6 +31,7 @@ public:
     {
         std::vector<cv::Mat> features = load_features();
         create_vocabulary(features);
+		create_databse(features);
     }
 
 private:
@@ -71,13 +73,65 @@ private:
             	std::cout << "Image " << i << " vs Image " << j << ": " << score << std::endl;
         	}
     	}
-	/*
-    // save the vocabulary to disk
-    cout << endl << "Saving vocabulary..." << endl;
-    voc.save("small_voc.yml.gz");
-    cout << "Done" << endl;
-	*/
+    	
+		// save the vocabulary to disk
+		std::cout << std::endl << "Saving vocabulary..." << std::endl;
+		file_name_ = DIR_PATH_ + get_date() + ".yml.gz";
+		vocabulary.save(file_name_);
+    	std::cout << "Done" << std::endl;
     }
+
+	// TO DO
+	void create_databse(std::vector<cv::Mat>& features)
+	{
+		std::cout << "Creating a small database..." << std::endl;
+		
+		// load the vocabulary from disk
+		Vocabulary vocabulary(file_name_);
+	
+	/*
+    Database db(voc, false, 0); // false = do not use direct index
+    // (so ignore the last param)
+    // The direct index is useful if we want to retrieve the features that
+    // belong to some vocabulary node.
+    // db creates a copy of the vocabulary, we may get rid of "voc" now
+
+    // add images to the database
+    for(size_t i = 0; i < features.size(); i++)
+        db.add(features[i]);
+
+    cout << "... done!" << endl;
+
+    cout << "Database information: " << endl << db << endl;
+
+    // and query the database
+    cout << "Querying the database: " << endl;
+
+    QueryResults ret;
+    for(size_t i = 0; i < features.size(); i++)
+    {
+        db.query(features[i], ret, 4);
+
+        // ret[0] is always the same image in this case, because we added it to the
+        // database. ret[1] is the second best match.
+
+        cout << "Searching for Image " << i << ". " << ret << endl;
+    }
+
+    cout << endl;
+
+    // we can save the database. The created file includes the vocabulary
+    // and the entries added
+    cout << "Saving database..." << endl;
+    db.save("small_db.yml.gz");
+    cout << "... done!" << endl;
+
+    // once saved, we can load it again
+    cout << "Retrieving database once again..." << endl;
+    Database db2("small_db.yml.gz");
+    cout << "... done! This is: " << endl << db2 << endl;
+	*/
+	}
 
     std::vector<cv::Mat> load_features()
     {
@@ -97,12 +151,30 @@ private:
         return features;
     }
 
+	std::string get_date()
+    {
+        time_t t = time(nullptr);
+        const tm* localTime = localtime(&t);
+        std::stringstream s;
+        s << localTime->tm_year + 1900;
+        s << std::setw(2) << std::setfill('0') << localTime->tm_mon + 1;
+        s << std::setw(2) << std::setfill('0') << localTime->tm_mday;
+        s << std::setw(2) << std::setfill('0') << localTime->tm_hour;
+        s << std::setw(2) << std::setfill('0') << localTime->tm_min;
+        s << std::setw(2) << std::setfill('0') << localTime->tm_sec;
+
+        return s.str();
+    }
+
     // node handler
     ros::NodeHandle nh_;
     ros::NodeHandle private_nh_;
 
     // detector
     cv::Ptr<cv::Feature2D> detector_;
+
+	// buffer
+	std::string file_name_;
 
     // params
     std::string DIR_PATH_;

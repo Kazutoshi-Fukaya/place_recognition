@@ -61,7 +61,8 @@ add_executable(bow
     bow/bow_vector.cpp
     bow/scoring_object.cpp
     bow/vocabulary.cpp
-    bow/descriptors_manipulator.cpp)
+    bow/descriptors_manipulator.cpp
+    bow/quicklz.cpp)
 target_link_libraries(bow
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}

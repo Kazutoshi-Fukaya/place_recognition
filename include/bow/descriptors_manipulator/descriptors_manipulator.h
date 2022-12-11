@@ -15,6 +15,12 @@ public:
     double distance(cv::Mat& a,cv::Mat& b);
     uint32_t distance_8uc1(cv::Mat& a,cv::Mat& b);
 	size_t get_desc_size_bytes(cv::Mat& d);
+
+	void to_stream(cv::Mat& m,std::ostream& str);
+	void from_stream(cv::Mat& m,std::istream& str);
+
+	std::string to_string(cv::Mat& a);
+	void from_string(cv::Mat& a,std::string& s);
 };
 }
 

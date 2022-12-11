@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <fstream>
 #include <algorithm>
 #include <numeric>
 
@@ -12,6 +13,7 @@
 #include "bow/scoring_object/scoring_object.h"
 #include "bow/vocabulary/node.h"
 #include "bow/descriptors_manipulator/descriptors_manipulator.h"
+#include "bow/quicklz/quicklz.h"
 
 namespace place_recognition
 {
@@ -20,6 +22,7 @@ class Vocabulary
 public:
     Vocabulary();
     Vocabulary(int k,int L,WeightingType weighting_type,ScoringType scoring_type);
+    Vocabulary(std::string& file_name);
 
     virtual void create(std::vector<cv::Mat>& training_features);
     virtual void create(std::vector<std::vector<cv::Mat>>& training_features);
@@ -27,6 +30,17 @@ public:
 	virtual void transform(cv::Mat& feature,unsigned int& id);
 	virtual void transform(cv::Mat& feature,unsigned int& id,double& weight);
 	virtual void transform(cv::Mat& features,BowVector& v);
+	
+	void save(std::string& file_name,bool binary_compressed = true);
+	virtual void save(cv::FileStorage& fs,std::string& name);
+	void to_stream(std::ostream& str,bool compressed = true);
+    void from_stream(std::istream& str);
+    void load_fromtxt(std::string& file_name);
+    virtual void load(cv::FileStorage& fs,std::string& name);
+
+    void load(std::string& file_name);
+    bool load(std::istream& ist);
+
 
 	double score(BowVector& a,BowVector& b);
 
@@ -52,6 +66,9 @@ protected:
 	
     // descriptors_manipulator
     DescriptorsManipulator* descriptors_manipulator_;
+
+    // QuickLZ
+    QuickLZ* quick_lz_;
 
     int m_k;                            // Branching factor
     int m_L;                            // Depth levels

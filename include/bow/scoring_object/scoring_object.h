@@ -2,6 +2,7 @@
 #define SCORING_OBJECT_H_
 
 #include <iostream>
+#include <cfloat>
 
 #include "bow/bow_vector/bow_vector.h"
 
@@ -29,8 +30,7 @@ private:
     std::string NAME;
     bool MUST_NORMALIZE;
     LNorm L_NORM;
-    double LOG_EPS_;
-
+    double LOG_EPS_ = std::log(DBL_EPSILON);
 };
 }
 

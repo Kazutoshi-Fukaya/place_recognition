@@ -10,7 +10,7 @@ public:
 	IFPair(unsigned int eid,double ww) : 
 		entry_id(eid), word_weight(ww) {}
 
-	bool operator==(unsigned eid) { return entry_id == eid; }
+	inline bool operator==(unsigned eid) const { return entry_id == eid; }
 
 	unsigned int entry_id;	// Entry id
     double word_weight;		// Word weight in this entry

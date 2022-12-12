@@ -32,7 +32,7 @@ public:
     {
         std::vector<cv::Mat> features = load_features();
         create_vocabulary(features);
-		create_databse(features);
+		// create_databse(features);
     }
 
 private:
@@ -79,7 +79,7 @@ private:
 		std::cout << std::endl << "Saving vocabulary..." << std::endl;
 		file_name_ = DIR_PATH_ + get_date() + ".yml.gz";
 		vocabulary.save(file_name_);
-    	std::cout << "Done" << std::endl;
+    	std::cout << "Done" << std::endl << std::endl;
     }
 
 	// TO DO
@@ -89,7 +89,10 @@ private:
 		
 		// load the vocabulary from disk
 		Vocabulary vocabulary(file_name_);
+		// vocabulary.get_info();
 		
+		// TO DO
+
 		// false = do not use direct index
 		Database database(vocabulary,false,0);
 		
@@ -101,33 +104,24 @@ private:
 		
 		// and query the database
 		std::cout << "Querying the database: " << std::endl;
-
-		// TO DO
-	/*
-    QueryResults ret;
-    for(size_t i = 0; i < features.size(); i++)
-    {
-        db.query(features[i], ret, 4);
-
-        // ret[0] is always the same image in this case, because we added it to the
-        // database. ret[1] is the second best match.
-
-        cout << "Searching for Image " << i << ". " << ret << endl;
-    }
-
-    cout << endl;
-
-    // we can save the database. The created file includes the vocabulary
-    // and the entries added
-    cout << "Saving database..." << endl;
-    db.save("small_db.yml.gz");
-    cout << "... done!" << endl;
-
-    // once saved, we can load it again
-    cout << "Retrieving database once again..." << endl;
-    Database db2("small_db.yml.gz");
-    cout << "... done! This is: " << endl << db2 << endl;
-	*/
+		
+		QueryResults ret;
+		for(size_t i = 0; i < features.size(); i++){
+			database.query(features[i],ret,4);
+			std::cout << "Searching for Image " << i << ". " << ret << std::endl;
+    	}
+		std::cout << std::endl;
+		
+		/*
+		std::cout << "Saving database..." << std::endl;
+		database.save(file_name_);
+		std::cout << "... done!" << std::endl;
+		
+		// once saved, we can load it again
+		std::cout << "Retrieving database once again..." << std::endl;
+		Database db2(file_name_);
+		// std::cout << "... done! This is: " << std::endl << db2 << std::endl;
+		*/
 	}
 
     std::vector<cv::Mat> load_features()

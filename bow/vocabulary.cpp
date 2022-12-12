@@ -947,3 +947,129 @@ void Vocabulary::load(cv::FileStorage& fs,std::string& name)
 		m_words[wid] = &m_nodes[nid];
   	}
 }
+
+void Vocabulary::transform(std::vector<cv::Mat>& features,BowVector& v,FeatureVector& fv,int levelsup)
+{
+	v.clear();
+	fv.clear();
+
+	// safe for subclasses
+	if(empty()) return;
+	
+	// normalize
+  	LNorm norm;
+  	bool must = m_scoring_object->must_normalize(norm);
+	if(m_weighting == TF || m_weighting == TF_IDF){
+		unsigned int i_feature = 0;
+		for(auto fit = features.begin(); fit < features.end(); fit++, i_feature++){
+			unsigned int id;
+			unsigned int nid;
+			double w;
+			
+			transform(*fit,id,w,&nid,levelsup);
+			
+			// not stopped
+			if(w > 0){
+				v.add_weight(id,w);
+				fv.add_feature(nid,i_feature);
+      		}
+    	}
+		
+		if(!v.empty() && !must){
+			// unnecessary when normalizing
+			const double nd = v.size();
+			for(BowVector::iterator vit = v.begin(); vit != v.end(); vit++) vit->second /= nd;
+    	}
+  	}
+	else{
+		unsigned int i_feature = 0;
+		for(auto fit = features.begin(); fit < features.end(); fit++, i_feature++){
+			unsigned int id;
+			unsigned int nid;
+			double w;
+			transform(*fit,id,w,&nid,levelsup);
+			
+			// not stopped
+			if(w > 0){
+				v.add_if_not_exist(id,w);
+        		fv.add_feature(nid,i_feature);
+      		}
+    	}
+  	}
+	
+	if(must) v.normalize(norm);
+}
+
+void Vocabulary::transform(cv::Mat& feature,unsigned int& id,double& weight,unsigned int* nid,int levelsup)
+{
+	// propagate the feature down the tree
+	
+	// level at which the node must be stored in nid, if given
+	const int nid_level = m_L - levelsup;
+
+	// root
+	if(nid_level <= 0 && nid != NULL) *nid = 0;
+	
+	// root
+	unsigned int final_id = 0;
+	int current_level = 0;
+	
+	do{
+		current_level++;
+		auto const &nodes = m_nodes[final_id].children_;
+		double best_d = std::numeric_limits<double>::max();
+		for(const auto &id : nodes){
+			double d = descriptors_manipulator_->distance(feature,m_nodes[id].descriptors_);
+			if(d < best_d){
+				best_d = d;
+				final_id = id;
+			}
+    	}
+
+		if(nid != NULL && current_level == nid_level) *nid = final_id;
+
+	}while(!m_nodes[final_id].is_leaf());
+	
+	// turn node id into word id
+  	id = m_nodes[final_id].word_id_;
+  	weight = m_nodes[final_id].weight_;
+}
+
+void Vocabulary::transform(std::vector<cv::Mat>& features,BowVector& v)
+{
+	v.clear();
+	if(empty()) return;
+	
+	// normalize
+  	LNorm norm;
+  	bool must = m_scoring_object->must_normalize(norm);
+	
+	if(m_weighting == TF || m_weighting == TF_IDF){
+    	for(auto fit = features.begin(); fit < features.end(); fit++){
+			unsigned int id;
+			double w;
+			transform(*fit,id,w);
+			
+			// not stopped
+      		if(w > 0) v.add_weight(id,w);
+    	}
+		
+		if(!v.empty() && !must){
+			// unnecessary when normalizing
+      		const double nd = v.size();
+      		for(BowVector::iterator vit = v.begin(); vit != v.end(); vit++) vit->second /= nd;
+    	}
+  	}
+	else{
+		for(auto fit = features.begin(); fit < features.end(); fit++){
+			unsigned int id;
+			double w;
+			transform(*fit,id,w);
+			
+			// not stopped
+      		if(w > 0) v.add_if_not_exist(id,w);
+    	} 
+  	} 
+	
+	if(must) v.normalize(norm);
+}

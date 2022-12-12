@@ -14,6 +14,7 @@
 #include "bow/vocabulary/node.h"
 #include "bow/descriptors_manipulator/descriptors_manipulator.h"
 #include "bow/quicklz/quicklz.h"
+#include "bow/feature_vector/feature_vector.h"
 
 namespace place_recognition
 {
@@ -30,7 +31,9 @@ public:
 	virtual void transform(cv::Mat& feature,unsigned int& id);
 	virtual void transform(cv::Mat& feature,unsigned int& id,double& weight);
 	virtual void transform(cv::Mat& features,BowVector& v);
-	
+    virtual void transform(std::vector<cv::Mat>& features,BowVector& v,FeatureVector& fv,int levelsup);
+    virtual void transform(std::vector<cv::Mat>& features,BowVector& v);
+
 	void save(std::string& file_name,bool binary_compressed = true);
 	virtual void save(cv::FileStorage& fs,std::string& name);
 	void to_stream(std::ostream& str,bool compressed = true);
@@ -63,7 +66,9 @@ protected:
     void initiate_clusters_KMpp(std::vector<cv::Mat>& descriptors,std::vector<cv::Mat>& clusters);
 	void create_words();
 	void set_node_weights(std::vector<std::vector<cv::Mat>>& training_features);
-	
+    
+    virtual void transform(cv::Mat& feature,unsigned int& id,double& weight,unsigned int* nid,int levelsup = 0);
+
     // descriptors_manipulator
     DescriptorsManipulator* descriptors_manipulator_;
 

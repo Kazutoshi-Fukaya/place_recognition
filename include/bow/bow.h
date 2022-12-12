@@ -10,6 +10,7 @@
 #include <opencv2/features2d/features2d.hpp>
 
 #include "bow/vocabulary/vocabulary.h"
+#include "bow/database/database.h"
 
 namespace place_recognition
 {
@@ -88,25 +89,21 @@ private:
 		
 		// load the vocabulary from disk
 		Vocabulary vocabulary(file_name_);
-	
+		
+		// false = do not use direct index
+		Database database(vocabulary,false,0);
+		
+		// add images to the database
+		for(size_t i = 0; i < features.size(); i++) database.add(features[i]);
+		std::cout << "... done!" << std::endl;
+		std::cout << "Database information: " << std::endl;
+		database.get_info();
+		
+		// and query the database
+		std::cout << "Querying the database: " << std::endl;
+
+		// TO DO
 	/*
-    Database db(voc, false, 0); // false = do not use direct index
-    // (so ignore the last param)
-    // The direct index is useful if we want to retrieve the features that
-    // belong to some vocabulary node.
-    // db creates a copy of the vocabulary, we may get rid of "voc" now
-
-    // add images to the database
-    for(size_t i = 0; i < features.size(); i++)
-        db.add(features[i]);
-
-    cout << "... done!" << endl;
-
-    cout << "Database information: " << endl << db << endl;
-
-    // and query the database
-    cout << "Querying the database: " << endl;
-
     QueryResults ret;
     for(size_t i = 0; i < features.size(); i++)
     {

@@ -41,6 +41,19 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
+# DBoW
+add_library(DBoW3 SHARED
+    dbow3/descriptors_manipulator.cpp
+    dbow3/feature_vector.cpp
+    dbow3/scoring_object.cpp
+    dbow3/quicklz.cpp
+    dbow3/vocabulary.cpp
+    dbow3/query_results.cpp
+    dbow3/bow_vector.cpp
+    dbow3/database.cpp
+)
+
+
 # keypoints_detector
 add_executable(keypoints_detector src/keypoints_detector.cpp)
 target_link_libraries(keypoints_detector
@@ -55,17 +68,17 @@ target_link_libraries(image_creator
     ${OpenCV_LIBRARIES}
 )
 
-# bow
-add_executable(bow 
-    src/bow.cpp
-    bow/bow_vector.cpp
-    bow/scoring_object.cpp
-    bow/vocabulary.cpp
-    bow/descriptors_manipulator.cpp
-    bow/quicklz.cpp
-    bow/databse.cpp
-    bow/feature_vector.cpp)
-target_link_libraries(bow
+# reference_data_creator
+add_executable(reference_data_creator src/reference_data_creator.cpp)
+target_link_libraries(reference_data_creator
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
+)
+
+# dbow3
+add_executable(dbow3_demo src/dbow3_demo.cpp)
+target_link_libraries(dbow3_demo
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
 )

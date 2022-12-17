@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="roomba"      default="roomba1" />
+	<arg name="config_path" default="$(find place_recognition)/config" />
+	
+	<!-- equirectangular_convertor, rosbag -->
+	<include file="$(find place_recognition)/launch/utils/equirectangular_convertor.launch" >
+		<arg name="is_bag"               value="true" />
+		<arg name="theta_s_mode"         value="0" />
+		<arg name="is_theta_s_visualize" value="false" />
+		<arg name="is_rviz"              value="true" />
+		<arg name="roomba"               value="$(arg roomba)" />
+	</include>
+
+    <!-- image_creator -->
+    <node pkg="place_recognition" type="reference_data_creator" name="reference_data_creator" output="screen" >
+		<!-- remap -->
+		<remap from="equ_in"  to="$(arg roomba)/equirectangular/image_raw" />
+		<remap from="rgb_in"  to="$(arg roomba)/camera/color/image_rect_color" />
+		<remap from="pose_in" to="$(arg roomba)/amcl_pose" />
+		
+		<!-- params -->
+        <param name="FILE_PATH" value="$(find place_recognition)/record/" />
+    </node>
+
+</launch>

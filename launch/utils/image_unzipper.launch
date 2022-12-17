@@ -8,4 +8,9 @@
         <remap from="out" to="$(arg roomba)/theta_s/image_raw" />
     </node>
 
+	<node pkg="image_transport" type="republish" name="$(arg roomba)_color_republish" args="compressed raw" >
+        <remap from="in"  to="$(arg roomba)/camera/color/image_rect_color" />
+        <remap from="out" to="$(arg roomba)/camera/color/image_rect_color" />
+    </node>
+
 </launch>

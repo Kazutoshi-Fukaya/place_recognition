@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- dbow3_demo -->
+    <node pkg="place_recognition" type="dbow3_demo" name="dbow3_demo" output="screen" >
+        <!-- params -->
+        <param name="DIR_PATH" value="$(find place_recognition)/images/" />
+    </node>
+
+</launch>

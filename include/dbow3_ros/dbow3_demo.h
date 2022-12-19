@@ -38,6 +38,7 @@ private:
 
     // param
     std::string DIR_PATH_;
+    std::string SAVE_FILE_;
 };
 }
 

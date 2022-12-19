@@ -42,9 +42,22 @@ KeypointsDetector::KeypointsDetector() :
 	private_nh_("~"),
 	inpaintor_(new Inpaintor)
 {
+	// mode
 	std::string mode;
 	private_nh_.param("MODE",mode,{std::string("orb")});
 	set_detector_mode(mode);
+
+	// inpaintor params
+	Pillars pillars;
+	private_nh_.param("START_OF_FIRST_PILLAR",pillars.first.start,{150});
+	private_nh_.param("END_OF_FIRST_PILLAR",pillars.first.end,{210});
+	private_nh_.param("START_OF_SECOND_PILLAR",pillars.second.start,{420});
+	private_nh_.param("END_OF_SECOND_PILLAR",pillars.second.end,{490});
+	private_nh_.param("START_OF_THIRD_PILLAR",pillars.third.start,{800});
+	private_nh_.param("END_OF_THIRD_PILLAR",pillars.third.end,{840});
+	private_nh_.param("START_OF_FOURTH_PILLAR",pillars.fourth.start,{1060});
+	private_nh_.param("END_OF_FOURTH_PILLAR",pillars.fourth.end,{1120});
+	inpaintor_->set_params(pillars);
 
 	img_sub_ = nh_.subscribe("img_in",1,&KeypointsDetector::image_callback,this);
 
@@ -77,12 +90,6 @@ void KeypointsDetector::image_callback(const sensor_msgs::ImageConstPtr& msg)
 	detector_->compute(inpainted_img,keypoints,descriptor);
 	cv::Mat detected_img(cv_ptr->image.rows,cv_ptr->image.cols,cv_ptr->image.type());
 	cv::drawKeypoints(inpainted_img,keypoints,detected_img,cv::Scalar(0.0,255.0,0),cv::DrawMatchesFlags::DEFAULT);
-
-	/*
-	std::cout << "Resize  Img: (" << resized_img.cols << "," << resized_img.rows << ")" << std::endl;
-	std::cout << "Inpaint Img: (" << inpainted_img.cols << "," << inpainted_img.rows << ")" << std::endl;
-	std::cout << std::endl;
-	*/
 
 	// compare
 	cv::Mat space(cv::Mat::zeros(20,resized_img.cols,CV_8UC3));

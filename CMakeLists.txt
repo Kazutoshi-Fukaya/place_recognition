@@ -53,7 +53,6 @@ add_library(DBoW3 SHARED
     dbow3/database.cpp
 )
 
-
 # keypoints_detector
 add_executable(keypoints_detector src/keypoints_detector.cpp)
 target_link_libraries(keypoints_detector
@@ -75,9 +74,17 @@ target_link_libraries(reference_data_creator
     ${OpenCV_LIBRARIES}
 )
 
-# dbow3
+# dbow3_demo
 add_executable(dbow3_demo src/dbow3_demo.cpp)
 target_link_libraries(dbow3_demo
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
+)
+
+# images_searcher
+add_executable(images_searcher src/images_searcher.cpp)
+target_link_libraries(images_searcher
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
     DBoW3

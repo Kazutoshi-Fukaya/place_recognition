@@ -11,7 +11,9 @@ DBoW3Demo::DBoW3Demo() :
     set_detector_mode(mode);
 
     private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
+    private_nh_.param("SAVE_FILE",SAVE_FILE_,{std::string("small_voc.yml.gz")});
     file_path_ = DIR_PATH_ + "small_voc.yml.gz";
+    std::cout << file_path_ << std::endl;
 }
 
 void DBoW3Demo::set_detector_mode(std::string mode)
@@ -56,6 +58,7 @@ void DBoW3Demo::create_vocabulary(const std::vector<cv::Mat>& features)
     // save the vocabulary to disk
     std::cout << std::endl << "Saving vocabulary..." << std::endl;
     voc.save(file_path_);
+    std::cout << "Save file: " << file_path_ << std::endl;
     std::cout << "Done" << std::endl;
 }
 

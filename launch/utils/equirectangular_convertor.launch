@@ -11,7 +11,9 @@
 	<!-- bag_player -->
 	<arg name="is_bag" default="true" />
 	<group if="$(arg is_bag)" >
-		<include file="$(find place_recognition)/launch/utils/bag_player.launch" />
+		<include file="$(find place_recognition)/launch/utils/bag_player.launch" >
+			<arg name="roomba" value="$(arg roomba)" />
+		</include>
     </group>
 
 	<!-- equirectangular_convertor -->
@@ -28,7 +30,7 @@
 	<!-- rviz -->
 	<arg name="is_rviz" default="false" />
 	<group if="$(arg is_rviz)" >
-		<node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/rviz.rviz" />
+		<node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/rviz/$(arg roomba).rviz" />
     </group>
 
 </launch>

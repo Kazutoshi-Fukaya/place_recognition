@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- dbow3_demo -->
+    <node pkg="place_recognition" type="images_searcher" name="images_searcher" output="screen" >
+        <!-- params -->
+        <param name="DIR_PATH"  value="$(find place_recognition)/record/" />
+        <!-- <param name="SAVE_FILE" value="d_kan_mono" /> -->
+    </node>
+
+</launch>

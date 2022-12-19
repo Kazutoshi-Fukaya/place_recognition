@@ -9,6 +9,33 @@
 
 namespace place_recognition
 {
+class Pillar
+{
+public:
+	Pillar() :
+		start(0), end(0) {}
+
+	Pillar(int _start,int _end) :
+		start(_start), end(_end) {}
+	
+	int start;
+	int end;
+private:
+};
+
+class Pillars
+{
+public:
+	Pillars() {}
+
+	Pillar first;
+	Pillar second;
+	Pillar third;
+	Pillar fourth;
+
+private:
+};
+
 class Inpaintor
 {
 public:
@@ -21,10 +48,10 @@ public:
 
 		// mask img
 		cv::Mat mask_img = cv::Mat::zeros(input_img.size(),CV_8UC3);
-		cv::rectangle(mask_img,cv::Point(150,0),cv::Point(210,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
-		cv::rectangle(mask_img,cv::Point(420,0),cv::Point(490,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
-		cv::rectangle(mask_img,cv::Point(800,0),cv::Point(840,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
-		cv::rectangle(mask_img,cv::Point(1060,0),cv::Point(1120,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);	
+		cv::rectangle(mask_img,cv::Point(pillars_.first.start,0),cv::Point(pillars_.first.end,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
+		cv::rectangle(mask_img,cv::Point(pillars_.second.start,0),cv::Point(pillars_.second.end,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
+		cv::rectangle(mask_img,cv::Point(pillars_.third.start,0),cv::Point(pillars_.third.end,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);
+		cv::rectangle(mask_img,cv::Point(pillars_.fourth.start,0),cv::Point(pillars_.fourth.end,input_img.rows),cv::Scalar(255,255,255),-1,cv::LINE_AA);	
 		cv::cvtColor(mask_img,mask_img,cv::COLOR_BGR2GRAY);
 
 		// inpaint img
@@ -35,13 +62,14 @@ public:
 
 	void resize_img(cv::Mat& img)
 	{
-		// int col_size = img.cols;
-		// int row_size = img.rows;
 		cv::Rect rect(cv::Point(0,265),cv::Size(img.cols,235));
 		img = img(rect);
 	}
 
+	void set_params(Pillars pillars) { pillars_ = pillars; }
+
 private:
+	Pillars pillars_;
 };
 }
 

@@ -5,7 +5,7 @@
     <node pkg="place_recognition" type="dbow3_demo" name="dbow3_demo" output="screen" >
         <!-- params -->
         <!-- <param name="DIR_PATH" value="$(find place_recognition)/images/" /> -->
-        <param name="DIR_PATH"  value="$(find place_recognition)/record/rgb/" />
+        <param name="DIR_PATH"  value="$(find place_recognition)/record/roomba5/rgb/" />
     </node>
 
 </launch>

@@ -92,6 +92,18 @@ ReferenceDataCreator::ReferenceDataCreator() :
 	private_nh_.param("FILE_PATH",FILE_PATH_,{std::string("")});
 	private_nh_.param("HZ",HZ_,{10});
 
+	// inpaintor params
+	Pillars pillars;
+	private_nh_.param("START_OF_FIRST_PILLAR",pillars.first.start,{150});
+	private_nh_.param("END_OF_FIRST_PILLAR",pillars.first.end,{210});
+	private_nh_.param("START_OF_SECOND_PILLAR",pillars.second.start,{420});
+	private_nh_.param("END_OF_SECOND_PILLAR",pillars.second.end,{490});
+	private_nh_.param("START_OF_THIRD_PILLAR",pillars.third.start,{800});
+	private_nh_.param("END_OF_THIRD_PILLAR",pillars.third.end,{840});
+	private_nh_.param("START_OF_FOURTH_PILLAR",pillars.fourth.start,{1060});
+	private_nh_.param("END_OF_FOURTH_PILLAR",pillars.fourth.end,{1120});
+	inpaintor_->set_params(pillars);
+
 	equ_sub_ = nh_.subscribe("equ_in",1,&ReferenceDataCreator::equ_image_callback,this);
 	rgb_sub_ = nh_.subscribe("rgb_in",1,&ReferenceDataCreator::rgb_image_callback,this);
 	pose_sub_ = nh_.subscribe("pose_in",1,&ReferenceDataCreator::pose_callback,this);
@@ -100,7 +112,7 @@ ReferenceDataCreator::ReferenceDataCreator() :
 ReferenceDataCreator::~ReferenceDataCreator()
 {
 	std::string save_file_path;
-	static std::ofstream ofs(FILE_PATH_ + "save.txt");
+	static std::ofstream ofs(FILE_PATH_ + "/save.txt");
 	for(auto it = ref_data_.begin(); it != ref_data_.end(); it++){
 		ofs << it->equ_file_path << ","
 		    << it->rgb_file_path << ","
@@ -150,14 +162,10 @@ void ReferenceDataCreator::create_reference_data()
 {
 	if(equ_img_.empty() || rgb_img_.empty()) return;
 
-	if(count_%100 == 0){
-		std::string equ_file_name = FILE_PATH_  + "/equ/" + std::to_string(count_) + "_img.jpg";
-		std::string rgb_file_name = FILE_PATH_  + "/rgb/" + std::to_string(count_) + "_img.jpg";
-		
-		// cv::Mat inpainted_img(equ_img_.rows,equ_img_.cols,equ_img_.type());
-		// inpainted_img = equ_img_;
-		// inpaintor_->inpaint_img(equ_img_,inpainted_img);
-		
+	if(count_%10 == 0){
+		std::string equ_file_name = FILE_PATH_  + "/equ/image" + std::to_string(count_/10) + ".jpg";
+		std::string rgb_file_name = FILE_PATH_  + "/rgb/image" + std::to_string(count_/10) + ".jpg";
+			
 		cv::imwrite(equ_file_name,equ_img_);
 		cv::imwrite(rgb_file_name,rgb_img_);
 

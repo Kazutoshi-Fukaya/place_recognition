@@ -1,4 +1,8 @@
 #include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <tf2/utils.h>
 
 #include "dbow3/vocabulary/vocabulary.h"
 #include "dbow3/database/database.h"
@@ -59,14 +63,15 @@ public:
 private:
 };
 
-class ImagesSearcher
+class PlaceRecognition
 {
 public:
-	ImagesSearcher();
+	PlaceRecognition();
 	void process();
 
 private:
-	bool load_query_image();
+	void image_callback(const sensor_msgs::ImageConstPtr& msg);
+
 	void load_reference_images();
 	void calc_features(Image& image,std::string name,cv::Mat img);
 
@@ -78,11 +83,20 @@ private:
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_;
 
+	// subscriber
+	ros::Subscriber img_sub_;
+
+	// publisher
+	ros::Publisher img_pub_;
+	ros::Publisher pose_pub_;
+
+	// database
+	dbow3::Database db;
 	// detector
     cv::Ptr<cv::Feature2D> detector_;
 
 	// Query
-	Image query_image_;
+	// Image query_image_;
 
 	// Reference
 	std::vector<Images> reference_images_;
@@ -93,13 +107,14 @@ private:
 	// param
 	std::string DIR_PATH_;
 	std::string REFERENCE_FILE_PATH_;
+	int HZ_;
 };
 }
 
 using namespace dbow3;
 using namespace place_recognition;
 
-ImagesSearcher::ImagesSearcher() :
+PlaceRecognition::PlaceRecognition() :
 	private_nh_("~"),
 	detector_(cv::ORB::create()),
 	file_path_(std::string(""))
@@ -107,29 +122,63 @@ ImagesSearcher::ImagesSearcher() :
 	private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
 
     private_nh_.param("REFERENCE_FILE_NAME",REFERENCE_FILE_PATH_,{std::string("")});
-    // file_path_ = REFERENCE_FILE_PATH_ + "rgb/dkan_mono.yml.gz";
-	file_path_ = REFERENCE_FILE_PATH_ + "equ/dkan_mono.yml.gz";
+    file_path_ = REFERENCE_FILE_PATH_ + "rgb/dkan_mono.yml.gz";
+	// file_path_ = REFERENCE_FILE_PATH_ + "equ/dkan_mono.yml.gz";
+
+	private_nh_.param("HZ",HZ_,{10});
+
+	load_reference_images();
+	create_database();
+
+	img_sub_ = nh_.subscribe("img_in",1,&PlaceRecognition::image_callback,this);
+	img_pub_ = nh_.advertise<sensor_msgs::Image>("img_out",1);
+	pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_out",1);
 }
 
-bool ImagesSearcher::load_query_image()
+void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
 {
-	std::cout << "=== Load Query Image ===" << std::endl;
-	// std::string file_path = DIR_PATH_ + "rgb/image18.jpg";
-	std::string file_path = DIR_PATH_ + "equ/image8.jpg";
-	cv::Mat image = cv::imread(file_path,0);
-	if(image.empty()){
-		std::cerr << "No query image" << std::endl;
-		return false;
-	}
-	std::cout << "file name: " << file_path << std::endl << std::endl;
+	cv_bridge::CvImagePtr cv_ptr;
+	try{
+		cv_ptr = cv_bridge::toCvCopy(msg,sensor_msgs::image_encodings::BGR8);
+    }
+    catch(cv_bridge::Exception& ex){
+        ROS_ERROR("Could not convert to color image");
+        return;
+    }
+
 	std::vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
-	detector_->detectAndCompute(image,cv::Mat(),keypoints,descriptors);
-	query_image_.set_params(file_path,image,keypoints,descriptors);
-	return true;
+	detector_->detectAndCompute(cv_ptr->image,cv::Mat(),keypoints,descriptors);
+
+	QueryResults ret;
+	db.query(descriptors,ret,4);
+	std::cout << ret << std::endl;
+
+	int id = ret.at(0).id;
+	std::string name = REFERENCE_FILE_PATH_ + "rgb/image" + std::to_string(id) + ".jpg";
+	cv::Mat output_img = cv::imread(name);
+	if(output_img.empty()) return;
+
+	sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(),"bgr8",output_img).toImageMsg();
+	img_pub_.publish(img_msg);
+
+	geometry_msgs::PoseStamped pose;
+	pose.header.frame_id = "map";
+	pose.header.stamp = ros::Time::now();
+	pose.pose.position.x = reference_images_.at(id).x;
+	pose.pose.position.y = reference_images_.at(id).y;
+	pose.pose.position.z = 0;
+	tf2::Quaternion tf_q;
+	tf_q.setRPY(0.0,0.0,reference_images_.at(id).theta);
+	pose.pose.orientation.w = tf_q.w();
+	pose.pose.orientation.x = tf_q.x();
+	pose.pose.orientation.y = tf_q.y();
+	pose.pose.orientation.z = tf_q.z();
+
+	pose_pub_.publish(pose);
 }
 
-void ImagesSearcher::load_reference_images()
+void PlaceRecognition::load_reference_images()
 {
 	// load csv file
 	std::cout << "=== Load Reference Images ===" << std::endl;
@@ -177,7 +226,7 @@ void ImagesSearcher::load_reference_images()
 	std::cout << std::endl;
 }
 
-void ImagesSearcher::calc_features(Image& image,std::string name,cv::Mat img)
+void PlaceRecognition::calc_features(Image& image,std::string name,cv::Mat img)
 {
 	std::vector<cv::KeyPoint> keypoints;
 	cv::Mat descriptors;
@@ -185,12 +234,13 @@ void ImagesSearcher::calc_features(Image& image,std::string name,cv::Mat img)
 	image.set_params(name,img,keypoints,descriptors);
 }
 
-void ImagesSearcher::create_database()
+void PlaceRecognition::create_database()
 {
 	std::cout << "=== Load Database ===" << std::endl;
 	std::cout << "load file: " << file_path_ << std::endl;
 	Vocabulary voc(file_path_);
-	Database db(voc,false,0);
+	Database tmp_db(voc,false,0);
+	db = tmp_db;
 
 	// rgb
 	for(const auto &img : reference_images_) db.add(img.rgb.descriptor);
@@ -198,13 +248,13 @@ void ImagesSearcher::create_database()
 	// info
 	db.get_info();
 
-	QueryResults ret;
-	db.query(query_image_.descriptor,ret,4);
+	// QueryResults ret;
+	// db.query(query_image_.descriptor,ret,4);
 	// std::cout << "Searching for Image " << DIR_PATH_ + "rgb/image18.jpg" << ". " << ret << std::endl;
-	std::cout << "Searching for Image " << DIR_PATH_ + "equ/image8.jpg" << ". " << ret << std::endl;
+	// std::cout << "Searching for Image " << DIR_PATH_ + "equ/image8.jpg" << ". " << ret << std::endl;
 }
 
-std::vector<std::string> ImagesSearcher::split(std::string& input,char delimiter)
+std::vector<std::string> PlaceRecognition::split(std::string& input,char delimiter)
 {
 	std::istringstream stream(input);
 	std::string field;
@@ -213,18 +263,19 @@ std::vector<std::string> ImagesSearcher::split(std::string& input,char delimiter
     return result;
 }
 
-void ImagesSearcher::process()
+void PlaceRecognition::process()
 {
-	if(!load_query_image()) return;
-	load_reference_images();
-
-	create_database();
+	ros::Rate rate(HZ_);
+	while(ros::ok()){
+		ros::spinOnce();
+		rate.sleep();
+	}
 }
 
 int main(int argc,char** argv)
 {
-	ros::init(argc,argv,"images_searcher");
-	ImagesSearcher images_searcher;
-	images_searcher.process();
+	ros::init(argc,argv,"place_recognition");
+	PlaceRecognition place_recognition;
+	place_recognition.process();
 	return 0;
 }

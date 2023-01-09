@@ -14,7 +14,7 @@
     <!-- image_creator -->
     <node pkg="place_recognition" type="image_creator" name="image_creator" output="screen" >
 		<!-- remap -->
-		<remap from="img_in" to="roomba1/equirectangular/image_raw" />
+		<remap from="img_in" to="roomba3/equirectangular/image_raw" />
 		
 		<!-- params -->
         <param name="FILE_PATH" value="$(find place_recognition)/img/" />

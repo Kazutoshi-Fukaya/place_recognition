@@ -62,7 +62,7 @@ void ImageCreator::image_callback(const sensor_msgs::ImageConstPtr& msg)
 	inpainted_img = cv_ptr->image;
 	inpaintor_->inpaint_img(cv_ptr->image,inpainted_img);
 
-	if(count_%100 == 0){
+	if(count_%10 == 0){
 		std::string file_name = FILE_PATH_ + std::to_string(count_) + "img.jpg";
 		cv::imwrite(file_name,inpainted_img);
 	}

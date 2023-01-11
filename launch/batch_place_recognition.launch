@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="roomba"      default="roomba1" />
+    <arg name="mode"        default="rgb" />
+    <arg name="config_path" default="$(find place_recognition)/config" />
+
+    <!-- batch_place_recognition -->
+    <node pkg="place_recognition" type="batch_place_recognition" name="batch_place_recognition" output="screen" >
+        <!-- params -->
+        <param name="MODE"                value="$(arg mode)" />
+        <param name="REFERENCE_FILE_PATH" value="$(find place_recognition)/reference_data/" />
+        <param name="QUERY_FILE_PATH"     value="$(env HOME)/../../media/amsl/ef88e1a9-c1cf-4f57-8b27-ab40a1bf1d68/home/amsl/bagfiles/six_roomba_spread_20220630_image/$(arg roomba)" />
+    </node>
+
+</launch>

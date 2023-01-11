@@ -100,9 +100,17 @@ target_link_libraries(place_recognition
     DBoW3
 )
 
-# place_recognition
+# dom_place_recognition
 add_executable(dom_place_recognition src/dom_place_recognition.cpp)
 target_link_libraries(dom_place_recognition
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
+)
+
+# batch_place_recognition
+add_executable(batch_place_recognition src/batch_place_recognition.cpp)
+target_link_libraries(batch_place_recognition
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
     DBoW3

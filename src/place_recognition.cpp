@@ -1,114 +1,4 @@
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#include <cv_bridge/cv_bridge.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <tf2/utils.h>
-
-#include "dbow3/vocabulary/vocabulary.h"
-#include "dbow3/database/database.h"
-
-namespace place_recognition
-{
-class Image
-{
-public:
-    Image() {}
-
-    Image(std::string _file_name,cv::Mat _img,
-          std::vector<cv::KeyPoint> _keypoints,
-          cv::Mat _descriptor) :
-        file_name(_file_name),
-        img(_img),
-        keypoints(_keypoints),
-        descriptor(_descriptor) {}
-
-    void set_params(std::string _file_name,cv::Mat _img,
-                    std::vector<cv::KeyPoint> _keypoints,
-                    cv::Mat _descriptor)
-    {
-        file_name = _file_name;
-        img = _img;
-        keypoints = _keypoints;
-        descriptor = _descriptor;
-    }
-
-    std::string file_name;
-    cv::Mat img;
-    std::vector<cv::KeyPoint> keypoints;
-    cv::Mat descriptor;
-
-private:
-};
-
-class Images
-{
-public:
-    Images() :
-        x(0.0), y(0.0), theta(0.0) {}
-
-    Images(double _x,double _y,double _theta) :
-        x(_x), y(_y), theta(_theta) {}
-
-    void set_equ_image(Image _equ) { equ = _equ; }
-    void set_rgb_image(Image _rgb) { rgb = _rgb; }
-
-    Image equ;
-    Image rgb;
-
-    double x;
-    double y;
-    double theta;
-
-private:
-};
-
-class PlaceRecognition
-{
-public:
-    PlaceRecognition();
-    void process();
-
-private:
-    void image_callback(const sensor_msgs::ImageConstPtr& msg);
-
-    void load_reference_images();
-    void calc_features(Image& image,std::string name,cv::Mat img);
-
-    void create_database();
-
-    std::vector<std::string> split(std::string& input,char delimiter);
-
-    // node handler
-    ros::NodeHandle nh_;
-    ros::NodeHandle private_nh_;
-
-    // subscriber
-    ros::Subscriber img_sub_;
-
-    // publisher
-    ros::Publisher img_pub_;
-    ros::Publisher pose_pub_;
-
-    // database
-    dbow3::Database db;
-    // detector
-    cv::Ptr<cv::Feature2D> detector_;
-
-    // Query
-    // Image query_image_;
-
-    // Reference
-    std::vector<Images> reference_images_;
-
-    // buffer
-    std::string file_path_;
-
-    // param
-    std::string DIR_PATH_;
-    std::string REFERENCE_FILE_PATH_;
-    int HZ_;
-};
-}
+#include "place_recognition/place_recognition.h"
 
 using namespace dbow3;
 using namespace place_recognition;
@@ -118,12 +8,12 @@ PlaceRecognition::PlaceRecognition() :
     detector_(cv::ORB::create()),
     file_path_(std::string(""))
 {
-    private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
-
     private_nh_.param("REFERENCE_FILE_NAME",REFERENCE_FILE_PATH_,{std::string("")});
-    file_path_ = REFERENCE_FILE_PATH_ + "rgb/dkan_mono.yml.gz";
-    // file_path_ = REFERENCE_FILE_PATH_ + "equ/dkan_mono.yml.gz";
+    private_nh_.param("MODE",MODE_,{std::string("rgb")});
+    file_path_ = REFERENCE_FILE_PATH_ + MODE_ + "/dkan_mono.yml.gz";
 
+    private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
+    // private_nh_.param("IS_DEBUG",IS_DEBUG_,{false});
     private_nh_.param("HZ",HZ_,{10});
 
     load_reference_images();
@@ -131,6 +21,7 @@ PlaceRecognition::PlaceRecognition() :
 
     img_sub_ = nh_.subscribe("img_in",1,&PlaceRecognition::image_callback,this);
     img_pub_ = nh_.advertise<sensor_msgs::Image>("img_out",1);
+    
     pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_out",1);
 }
 
@@ -152,7 +43,6 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     QueryResults ret;
     db.query(descriptors,ret,4);
     std::cout << ret << std::endl;
-
     if(ret.empty()) return;
 
     int id = ret.at(0).id;
@@ -247,11 +137,6 @@ void PlaceRecognition::create_database()
 
     // info
     db.get_info();
-
-    // QueryResults ret;
-    // db.query(query_image_.descriptor,ret,4);
-    // std::cout << "Searching for Image " << DIR_PATH_ + "rgb/image18.jpg" << ". " << ret << std::endl;
-    // std::cout << "Searching for Image " << DIR_PATH_ + "equ/image8.jpg" << ". " << ret << std::endl;
 }
 
 std::vector<std::string> PlaceRecognition::split(std::string& input,char delimiter)

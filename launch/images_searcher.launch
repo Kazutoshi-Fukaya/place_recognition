@@ -2,11 +2,10 @@
 <launch>
     <arg name="roomba" default="roomba6" />
 
-
     <!-- dbow3_demo -->
     <node pkg="place_recognition" type="images_searcher" name="images_searcher" output="screen" >
         <!-- params -->
-        <param name="DIR_PATH"  value="$(find place_recognition)/record/" />
+        <param name="DIR_PATH"            value="$(find place_recognition)/reference_data/" />
         <param name="REFERENCE_FILE_NAME" value="$(find place_recognition)/record/$(arg roomba)/" />
         <!-- <param name="SAVE_FILE" value="d_kan_mono" /> -->
     </node>

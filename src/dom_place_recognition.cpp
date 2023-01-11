@@ -4,6 +4,11 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <tf2/utils.h>
 
+#include "multi_robot_msgs/Doms.h"
+#include "object_detector_msgs/ObjectPositions.h"
+
+#include <random>
+
 #include "dbow3/vocabulary/vocabulary.h"
 #include "dbow3/database/database.h"
 
@@ -20,7 +25,7 @@ public:
         file_name(_file_name),
         img(_img),
         keypoints(_keypoints),
-        descriptor(_descriptor) {}
+        descriptor(_descriptor){}
 
     void set_params(std::string _file_name,cv::Mat _img,
                     std::vector<cv::KeyPoint> _keypoints,
@@ -62,6 +67,19 @@ public:
 private:
 };
 
+class ObjectTime
+{
+public:
+    ObjectTime() {}
+    ObjectTime(std::string _name) :
+        name(_name) {}
+
+    std::string name;
+    ros::Time last_time;
+    double time;
+private:
+};
+
 class PlaceRecognition
 {
 public:
@@ -70,6 +88,8 @@ public:
 
 private:
     void image_callback(const sensor_msgs::ImageConstPtr& msg);
+    void dom_callback(const multi_robot_msgs::DomsConstPtr& msg);
+    void obj_callback(const object_detector_msgs::ObjectPositionsConstPtr& msg);
 
     void load_reference_images();
     void calc_features(Image& image,std::string name,cv::Mat img);
@@ -84,6 +104,8 @@ private:
 
     // subscriber
     ros::Subscriber img_sub_;
+    ros::Subscriber dom_sub_;
+    ros::Subscriber obj_sub_;
 
     // publisher
     ros::Publisher img_pub_;
@@ -91,6 +113,7 @@ private:
 
     // database
     dbow3::Database db;
+
     // detector
     cv::Ptr<cv::Feature2D> detector_;
 
@@ -100,7 +123,15 @@ private:
     // Reference
     std::vector<Images> reference_images_;
 
+    // random
+    std::random_device seed_;
+    std::mt19937 engine_;
+
     // buffer
+    multi_robot_msgs::Doms doms_;
+    object_detector_msgs::ObjectPositions obj_;
+    geometry_msgs::PoseStamped last_pose_;
+    std::vector<ObjectTime> objects_time_;
     std::string file_path_;
 
     // param
@@ -116,6 +147,7 @@ using namespace place_recognition;
 PlaceRecognition::PlaceRecognition() :
     private_nh_("~"),
     detector_(cv::ORB::create()),
+    engine_(seed_()),
     file_path_(std::string(""))
 {
     private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
@@ -130,8 +162,18 @@ PlaceRecognition::PlaceRecognition() :
     create_database();
 
     img_sub_ = nh_.subscribe("img_in",1,&PlaceRecognition::image_callback,this);
+    dom_sub_ = nh_.subscribe("dom",1,&PlaceRecognition::dom_callback,this);
+    obj_sub_ = nh_.subscribe("obj_in",1,&PlaceRecognition::obj_callback,this);
+
     img_pub_ = nh_.advertise<sensor_msgs::Image>("img_out",1);
     pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_out",1);
+
+    // objects time (あとで作りなおす)
+    objects_time_.emplace_back(ObjectTime(std::string("trash_can")));
+    objects_time_.emplace_back(ObjectTime(std::string("fire_hydrant")));
+    objects_time_.emplace_back(ObjectTime(std::string("bench")));
+    objects_time_.emplace_back(ObjectTime(std::string("table")));
+    objects_time_.emplace_back(ObjectTime(std::string("chair")));
 }
 
 void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
@@ -144,6 +186,28 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("Could not convert to color image");
         return;
     }
+
+    // change image (あとで作りなおす)
+    std::uniform_real_distribution<> dist(0.0,1.0);
+    for(const auto &dom : doms_.doms){
+        if(dom.dom > 0.0){
+            for(const auto &obj_time : objects_time_){
+                if(dom.name == obj_time.name){
+                    double lambda = dom.dom*obj_time.time;
+                    double p_0 = std::exp(-1*lambda);
+                    if(dist(engine_) < p_0){
+                        // rgb image
+                        Image rgb;
+                        calc_features(rgb,"new_fig",cv_ptr->image);
+                        Images images(last_pose_.pose.position.x,last_pose_.pose.position.y,tf2::getYaw(last_pose_.pose.orientation));
+                        images.set_rgb_image(rgb);
+                        reference_images_.emplace_back(images);
+                    }
+                }
+            }
+        }
+    }
+
 
     std::vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
@@ -176,7 +240,26 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     pose.pose.orientation.y = tf_q.y();
     pose.pose.orientation.z = tf_q.z();
 
+    last_pose_ = pose;
     pose_pub_.publish(pose);
+}
+
+void PlaceRecognition::dom_callback(const multi_robot_msgs::DomsConstPtr& msg)
+{
+    doms_ = *msg;
+}
+
+void PlaceRecognition::obj_callback(const object_detector_msgs::ObjectPositionsConstPtr& msg)
+{
+    obj_ = *msg;
+    for(auto obj_time : objects_time_){
+        for(const auto &obj : msg->object_position){
+            if(obj_time.name == obj.Class){
+                obj_time.time = (msg->header.stamp - obj_time.last_time).toSec();
+                obj_time.last_time = msg->header.stamp;
+            }
+        }
+    }
 }
 
 void PlaceRecognition::load_reference_images()
@@ -214,6 +297,7 @@ void PlaceRecognition::load_reference_images()
             images.set_equ_image(equ);
             images.set_rgb_image(rgb);
             reference_images_.emplace_back(images);
+
         }
         catch(const std::invalid_argument& ex){
             std::cerr << "Invalid: " << ex.what() << std::endl;

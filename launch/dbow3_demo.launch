@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="roomba" default="roomba1" />
 
     <!-- dbow3_demo -->
     <node pkg="place_recognition" type="dbow3_demo" name="dbow3_demo" output="screen" >
         <!-- params -->
         <!-- <param name="DIR_PATH" value="$(find place_recognition)/images/" /> -->
-        <param name="DIR_PATH"  value="$(find place_recognition)/record/roomba5/rgb/" />
+        <!-- <param name="DIR_PATH" value="$(find place_recognition)/record/$(arg roomba)/rgb/" /> -->
+        <!-- <param name="DIR_PATH" value="$(find place_recognition)/record/$(arg roomba)/equ/" /> -->
+        <!-- <param name="DIR_PATH"  value="$(find place_recognition)/reference_data/rgb/" /> -->
+        <param name="DIR_PATH"  value="$(find place_recognition)/reference_data/equ/" />
     </node>
 
 </launch>

@@ -4,26 +4,32 @@
     <arg name="config_path" default="$(find place_recognition)/config" />
 
     <!--map_server -->
-    <arg name="is_map" default="true" />
+    <arg name="is_map" default="false" />
     <group if="$(arg is_map)" >
         <node pkg="map_server" type="map_server" name="map" args="$(find multi_localizer)/config/map/static_map.yaml" />
     </group>
 
     <!-- equirectangular_convertor, rosbag -->
     <include file="$(find place_recognition)/launch/utils/equirectangular_convertor.launch" >
-        <arg name="is_bag"               value="true" />
+        <arg name="is_bag"               value="false" />
         <arg name="theta_s_mode"         value="0" />
         <arg name="is_theta_s_visualize" value="false" />
         <arg name="is_rviz"              value="false" />
-
         <arg name="roomba"               value="$(arg roomba)" />
     </include>
 
+    <!-- dom_estimator -->
+    <include file="$(find dom_estimator)/launch/dom_estimator.launch" >
+        <arg name="wait_time" value="25.0" />
+        <arg name="is_rviz"   value="false" />
+    </include>
+
     <!-- image_creator -->
-    <node pkg="place_recognition" type="place_recognition" name="place_recognition" output="screen" >
+    <node pkg="place_recognition" type="dom_place_recognition" name="dom_place_recognition" output="screen" >
         <!-- remap -->
         <!-- <remap from="img_in" to="roomba5/equirectangular/image_raw" /> -->
         <remap from="img_in" to="$(arg roomba)/camera/color/image_rect_color" />
+        <remap from="obj_in" to="$(arg roomba)/object_positions" />
 
         <!-- params -->
         <param name="DIR_PATH"  value="$(find place_recognition)/reference_data/" />
@@ -33,7 +39,7 @@
     <!-- rviz -->
     <arg name="is_rviz" default="true" />
     <group if="$(arg is_rviz)" >
-        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/place_recognition/$(arg roomba).rviz" />
+        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/dom_place_recognition/$(arg roomba).rviz" />
     </group>
 
 </launch>

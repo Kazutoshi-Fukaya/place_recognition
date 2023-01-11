@@ -42,4 +42,4 @@ private:
 };
 }
 
-#endif	// DBOW3_DEMO_H_
+#endif  // DBOW3_DEMO_H_

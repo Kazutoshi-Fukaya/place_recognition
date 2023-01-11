@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
     cv_bridge
     eigen_conversions
     image_transport
+    multi_robot_msgs
+    object_detector_msgs
     roscpp
     rospy
     sensor_msgs
@@ -93,6 +95,14 @@ target_link_libraries(images_searcher
 # place_recognition
 add_executable(place_recognition src/place_recognition.cpp)
 target_link_libraries(place_recognition
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
+)
+
+# place_recognition
+add_executable(dom_place_recognition src/dom_place_recognition.cpp)
+target_link_libraries(dom_place_recognition
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
     DBoW3

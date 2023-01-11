@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="roomba" default="roomba1" />
+    <arg name="roomba" default="roomba1" />
 
-	<!-- unzipper -->
-	<node pkg="image_transport" type="republish" name="$(arg roomba)_theta_s_republish" args="compressed raw" >
-		<remap from="in"  to="$(arg roomba)/theta_s/image_raw" />
+    <!-- unzipper -->
+    <node pkg="image_transport" type="republish" name="$(arg roomba)_theta_s_republish" args="compressed raw" >
+        <remap from="in"  to="$(arg roomba)/theta_s/image_raw" />
         <remap from="out" to="$(arg roomba)/theta_s/image_raw" />
     </node>
 
-	<node pkg="image_transport" type="republish" name="$(arg roomba)_color_republish" args="compressed raw" >
+    <node pkg="image_transport" type="republish" name="$(arg roomba)_color_republish" args="compressed raw" >
         <remap from="in"  to="$(arg roomba)/camera/color/image_rect_color" />
         <remap from="out" to="$(arg roomba)/camera/color/image_rect_color" />
     </node>

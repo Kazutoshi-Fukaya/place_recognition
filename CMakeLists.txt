@@ -115,3 +115,11 @@ target_link_libraries(batch_place_recognition
     ${OpenCV_LIBRARIES}
     DBoW3
 )
+
+# multi_place_recognition
+add_executable(multi_place_recognition src/multi_place_recognition.cpp)
+target_link_libraries(multi_place_recognition
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
+)

@@ -1,0 +1,14 @@
+# robot_list
+
+robot_list:
+    - name: roomba1
+    
+    - name: roomba2
+
+    - name: roomba3
+    
+    - name: roomba4
+
+    - name: roomba5
+
+    - name: roomba6

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="wait_time" default="25.0" />
+    <arg name="wait_time" default="0.0" />
     <arg name="file_path" default="$(env HOME)/bagfiles/experimental_file_20220630" />
     <arg name="roomba"    default="roomba1" />
 

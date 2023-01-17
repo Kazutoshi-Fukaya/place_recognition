@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="roomba"      default="roomba1" />
+    <arg name="config_path" default="$(find place_recognition)/config" />
+    <arg name="wait_time"   default="20.0" />
+
+    <!--map_server -->
+    <arg name="is_map" default="true" />
+    <group if="$(arg is_map)" >
+        <node pkg="map_server" type="map_server" name="map" args="$(find multi_localizer)/config/map/static_map.yaml" />
+    </group>
+
+    <!-- roomba1 ~ 6 (equirectangular_convertor, rosbag) -->
+    <include file="$(find place_recognition)/launch/utils/multi_bag_player.launch" >
+        <arg name="wait_time" value="$(arg wait_time)" />
+    </include>
+
+    <!-- image_creator -->
+    <node pkg="place_recognition" type="multi_place_recognition" name="multi_place_recognition" output="screen" >
+        <!-- params -->
+        <param name="DETECTOR_MODE"         value="orb" />
+        <param name="IMAGE_MODE"            value="rgb" />
+        <param name="REFERENCE_IMAGES_PATH" value="$(find place_recognition)/reference_data/" />
+
+        <!-- rosparams -->
+        <rosparam command="load" file="$(arg config_path)/params/robot_list.yaml" />
+    </node>
+
+    <!-- rviz -->
+    <arg name="is_rviz" default="true" />
+    <group if="$(arg is_rviz)" >
+        <arg name="rviz_wait_time" default="30.0" />
+        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/multi_place_recognition/rviz.rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'" />
+    </group>
+
+</launch>

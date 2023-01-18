@@ -1,4 +1,4 @@
-#include "place_recognition/batch_place_recognition.h"
+#include "batch_place_recognition/batch_place_recognition.h"
 
 using namespace dbow3;
 using namespace place_recognition;

@@ -4,13 +4,16 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <cv_bridge/cv_bridge.h>
 #include <tf2/utils.h>
-
 #include <opencv2/opencv.hpp>
 
 #include "dbow3/vocabulary/vocabulary.h"
 #include "dbow3/database/database.h"
+#include "multi_place_recognition/match_recorder.h"
+
+#include "place_recognition_msgs/PoseStamped.h"
 
 namespace place_recognition
 {
@@ -18,21 +21,26 @@ class PlaceRecognitionInterface
 {
 public:
 	PlaceRecognitionInterface() {}
-	PlaceRecognitionInterface(ros::NodeHandle nh,std::string name,dbow3::Database* database,std::string image_mode) :
-		nh_(nh), database_(database), IMAGE_MODE_(image_mode)
+	PlaceRecognitionInterface(ros::NodeHandle nh,std::string name,dbow3::Database* database,std::string image_mode,bool is_record) :
+		nh_(nh), database_(database), start_time_(ros::Time::now()), IMAGE_MODE_(image_mode), IS_RECORD_(is_record)
 	{
+		// image subscriber
 		std::string img_sub_topic_name;
 		if(IMAGE_MODE_ == "rgb") img_sub_topic_name = name + "/camera/color/image_rect_color";
 		else if(IMAGE_MODE_ == "equ") img_sub_topic_name = name + "/equirectangular/image_raw";
 		img_sub_ = nh_.subscribe(img_sub_topic_name,1,&PlaceRecognitionInterface::image_callback,this);
 		
-		// pose
-		std::string pose_topic_name = name + "/output_pose";
-		pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(pose_topic_name,1);
+		// pose subscriber (for ground truth)
+		if(IS_RECORD_){
+			match_recorder_ = new MatchRecorder();
+			std::string pose_sub_topic_name = name + "/amcl_pose";
+			pose_sub_ = nh_.subscribe(pose_sub_topic_name,1,&PlaceRecognitionInterface::pose_callback,this);
+		}
 
-		// image
-		std::string img_pub_topic_name = name + "/output_image";
-		img_pub_ = nh_.advertise<sensor_msgs::Image>(img_pub_topic_name,1);
+		// pose publisher (result)
+		std::string pose_topic_name = name + "/pr_pose";
+		pose_pub_ = nh_.advertise<place_recognition_msgs::PoseStamped>(pose_topic_name,1);
+
 	}
 
 	void set_reference_image_path(std::string path) { REFERENCE_IMAGES_PATH_ = path; }
@@ -43,7 +51,16 @@ public:
 	cv::Mat get_input_img() { return input_img_; }
 	cv::Mat get_output_img() { return output_img_; }
 
+	// match recorder
+	MatchRecorder* match_recorder_;
+
 private:
+	void pose_callback(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
+	{
+		ref_pose_.header = msg->header;
+		ref_pose_.pose = msg->pose.pose;
+	}
+
 	void image_callback(const sensor_msgs::ImageConstPtr& msg)
 	{
 		cv_bridge::CvImagePtr cv_ptr;
@@ -74,21 +91,28 @@ private:
 		if(output_img.empty()) return;
 		output_img_ = output_img;
 
+		if(IS_RECORD_){
+			MatchPosition est_pos, ref_pos;
+			double now_time = (ros::Time::now() - start_time_).toSec();
+			est_pos.x = reference_images_.at(id).x;
+			est_pos.y = reference_images_.at(id).y;
+			est_pos.theta = reference_images_.at(id).theta;
+			ref_pos.x = ref_pose_.pose.position.x;
+			ref_pos.y = ref_pose_.pose.position.y;
+			ref_pos.theta = tf2::getYaw(ref_pose_.pose.orientation);
+			match_recorder_->add_match_record(now_time,est_pos,ref_pos);
+		}
+
 		// sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(),"bgr8",output_img).toImageMsg();
 		// img_pub_.publish(img_msg);
 
-		geometry_msgs::PoseStamped pose;
+		place_recognition_msgs::PoseStamped pose;
 		pose.header.frame_id = "map";
 		pose.header.stamp = ros::Time::now();
-		pose.pose.position.x = reference_images_.at(id).x;
-		pose.pose.position.y = reference_images_.at(id).y;
-		pose.pose.position.z = 0.0;
-		tf2::Quaternion tf_q;
-    	tf_q.setRPY(0.0,0.0,reference_images_.at(id).theta);
-    	pose.pose.orientation.w = tf_q.w();
-    	pose.pose.orientation.x = tf_q.x();
-   	 	pose.pose.orientation.y = tf_q.y();
-    	pose.pose.orientation.z = tf_q.z();
+		pose.score = ret.at(0).score;
+		pose.x = reference_images_.at(id).x;
+		pose.y = reference_images_.at(id).y;
+		pose.theta = reference_images_.at(id).theta;
 
 		pose_pub_.publish(pose);
 	}
@@ -98,10 +122,10 @@ private:
 
     // subscriber
     ros::Subscriber img_sub_;
+	ros::Subscriber pose_sub_;
 	
 	// Publisher
 	ros::Publisher pose_pub_;
-	ros::Publisher img_pub_;
 
     // database
 	dbow3::Database* database_;
@@ -113,20 +137,23 @@ private:
 	std::vector<Images> reference_images_;
 
 	// buffer
+	geometry_msgs::PoseStamped ref_pose_;
+	ros::Time start_time_;
 	cv::Mat input_img_;
 	cv::Mat output_img_;
 
 	// param
 	std::string IMAGE_MODE_;
 	std::string REFERENCE_IMAGES_PATH_;
+	bool IS_RECORD_;
 };
 
 class PlaceRecognitionInterfaces : public std::vector<PlaceRecognitionInterface*>
 {
 public:
 	PlaceRecognitionInterfaces() {}
-	PlaceRecognitionInterfaces(ros::NodeHandle _nh,ros::NodeHandle _private_nh,dbow3::Database* _database,std::string _image_mode) :
-		nh_(_nh), private_nh_(_private_nh), database_(_database), image_mode_(_image_mode) { init(); }
+	PlaceRecognitionInterfaces(ros::NodeHandle _nh,ros::NodeHandle _private_nh,dbow3::Database* _database,std::string _image_mode,bool _is_record) :
+		nh_(_nh), private_nh_(_private_nh), database_(_database), image_mode_(_image_mode), is_record_(_is_record) { init(); }
 
 	void set_reference_image_path(std::string path)
 	{
@@ -204,7 +231,7 @@ private:
 			}
 			if(robot_list[i]["name"].getType() == XmlRpc::XmlRpcValue::TypeString){
 				std::string name = static_cast<std::string>(robot_list[i]["name"]);
-				this->at(i) = new PlaceRecognitionInterface(nh_,name,database_,image_mode_);
+				this->at(i) = new PlaceRecognitionInterface(nh_,name,database_,image_mode_,is_record_);
         	}
     	}
 	}
@@ -221,6 +248,7 @@ private:
 
 	// mode
 	std::string image_mode_;
+	bool is_record_;
 };
 } // namespace place_recognition
 

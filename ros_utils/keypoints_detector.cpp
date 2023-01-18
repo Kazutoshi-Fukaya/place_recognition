@@ -1,39 +1,4 @@
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#include <cv_bridge/cv_bridge.h>
-
-#include "utils/inpaintor.h"
-
-namespace place_recognition
-{
-class KeypointsDetector
-{
-public:
-    KeypointsDetector();
-    void process();
-
-private:
-    void image_callback(const sensor_msgs::ImageConstPtr& msg);
-
-    void set_detector_mode(std::string mode);
-
-    // node handler
-    ros::NodeHandle nh_;
-    ros::NodeHandle private_nh_;
-
-    // subscriber
-    ros::Subscriber img_sub_;
-
-    // publisher
-    ros::Publisher img_pub_;
-
-    // inpaintor
-    Inpaintor* inpaintor_;
-
-    // detector
-    cv::Ptr<cv::Feature2D> detector_;
-};
-}
+#include "place_recognition_utils/keypoints_detector.h"
 
 using namespace place_recognition;
 
@@ -115,8 +80,8 @@ void KeypointsDetector::set_detector_mode(std::string mode)
     else if(mode == "brisk") detector_ = cv::BRISK::create();
     else if(mode == "akaze") detector_ = cv::AKAZE::create();
     else{
-        std::cerr << "No applicable mode. Please select 'orb', 'brisk' or 'akaze'" << std::endl;
-        std::cerr  << "Set 'orb" << std::endl;
+        ROS_WARN("No applicable mode. Please select 'orb', 'brisk' or 'akaze'");
+        ROS_INFO("Set 'orb");
         detector_ = cv::ORB::create();
     }
 }

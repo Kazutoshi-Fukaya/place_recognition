@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="roomba"      default="roomba1" />
+    <arg name="roomba"      default="roomba2" />
     <arg name="config_path" default="$(find place_recognition)/config" />
 
     <!-- equirectangular_convertor, rosbag -->
@@ -10,6 +10,7 @@
         <arg name="theta_s_mode"         value="0" />
         <arg name="is_theta_s_visualize" value="false" />
         <arg name="is_rviz"              value="false" />
+        <arg name="wait_time"            value="0.0" />
 
         <!-- params -->
         <arg name="roomba"               value="$(arg roomba)" />

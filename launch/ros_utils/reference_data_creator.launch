@@ -10,6 +10,7 @@
         <arg name="theta_s_mode"         value="0" />
         <arg name="is_theta_s_visualize" value="false" />
         <arg name="is_rviz"              value="true" />
+        <arg name="wait_time"            value="0.0" />
 
         <!-- params -->
         <arg name="roomba"               value="$(arg roomba)" />

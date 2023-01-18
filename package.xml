@@ -12,6 +12,7 @@
   <depend>image_transport</depend>
   <depend>multi_robot_msgs</depend>
   <depend>object_detector_msgs</depend>
+  <depend>place_recognition_msgs</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>sensor_msgs</depend>

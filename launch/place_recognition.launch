@@ -11,29 +11,34 @@
 
     <!-- equirectangular_convertor, rosbag -->
     <include file="$(find place_recognition)/launch/utils/equirectangular_convertor.launch" >
+        <!-- default -->
         <arg name="is_bag"               value="true" />
         <arg name="theta_s_mode"         value="0" />
         <arg name="is_theta_s_visualize" value="false" />
         <arg name="is_rviz"              value="false" />
+        <arg name="wait_time"            value="20.0" />
 
+        <!-- param -->
         <arg name="roomba"               value="$(arg roomba)" />
     </include>
 
-    <!-- image_creator -->
+    <!-- place_recognition -->
     <node pkg="place_recognition" type="place_recognition" name="place_recognition" output="screen" >
         <!-- remap -->
         <!-- <remap from="img_in" to="roomba5/equirectangular/image_raw" /> -->
         <remap from="img_in" to="$(arg roomba)/camera/color/image_rect_color" />
 
         <!-- params -->
-        <param name="DIR_PATH"  value="$(find place_recognition)/reference_data/" />
         <param name="REFERENCE_FILE_NAME" value="$(find place_recognition)/reference_data/" />
+        <param name="IMAGE_MODE"          value="rgb" />
+        <param name="DETECTOR_MODE"       value="orb" />
     </node>
 
     <!-- rviz -->
     <arg name="is_rviz" default="true" />
     <group if="$(arg is_rviz)" >
-        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/place_recognition/$(arg roomba).rviz" />
+        <arg name="rviz_wait_time" default="21.0" />
+        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/place_recognition/$(arg roomba).rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'"/>
     </group>
 
 </launch>

@@ -19,6 +19,7 @@ class MultiPlaceRecognition
 {
 public:
     MultiPlaceRecognition();
+    ~MultiPlaceRecognition();
     void process();
 
 private:
@@ -52,6 +53,8 @@ private:
 
     // param
     std::string IMAGE_MODE_;
+    bool IS_RECORD_;
+    bool PUBLISH_IMAGE_;
     int HZ_;
 };
 } // namespace place_recognition

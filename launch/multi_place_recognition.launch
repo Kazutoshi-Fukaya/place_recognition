@@ -2,7 +2,7 @@
 <launch>
     <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
-    <arg name="wait_time"   default="20.0" />
+    <arg name="wait_time"   default="15.0" />
 
     <!--map_server -->
     <arg name="is_map" default="true" />
@@ -21,6 +21,8 @@
         <param name="DETECTOR_MODE"         value="orb" />
         <param name="IMAGE_MODE"            value="rgb" />
         <param name="REFERENCE_IMAGES_PATH" value="$(find place_recognition)/reference_data/" />
+        <param name="IS_RECORD"             value="false" />
+        <param name="RECORD_PATH"           value="$(find place_recognition)/record/match_record/" />
 
         <!-- rosparams -->
         <rosparam command="load" file="$(arg config_path)/params/robot_list.yaml" />

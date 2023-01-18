@@ -40,6 +40,6 @@ private:
     std::string DIR_PATH_;
     std::string SAVE_FILE_;
 };
-}
+} // namespace dbow3
 
 #endif  // DBOW3_DEMO_H_

@@ -22,11 +22,10 @@ public:
 private:
     void image_callback(const sensor_msgs::ImageConstPtr& msg);
 
+    void set_detector_mode(std::string detector_mode);
     void load_reference_images();
     void calc_features(Image& image,std::string name,cv::Mat img);
-
     void create_database();
-
     std::vector<std::string> split(std::string& input,char delimiter);
 
     // node handler
@@ -41,7 +40,7 @@ private:
     ros::Publisher pose_pub_;
 
     // database
-    dbow3::Database db;
+    dbow3::Database* database_;
 
     // detector
     cv::Ptr<cv::Feature2D> detector_;
@@ -49,15 +48,9 @@ private:
     // Reference
     std::vector<Images> reference_images_;
 
-    // buffer
-    std::string file_path_;
-
     // param
-    std::string DIR_PATH_;
     std::string REFERENCE_FILE_PATH_;
-	std::string MODE_;
-	// bool IS_DEBUG_;
-    int HZ_;
+	std::string IMAGE_MODE_;
 };
 } // namespace place_recognition
 

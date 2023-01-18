@@ -22,12 +22,41 @@ MultiPlaceRecognition::MultiPlaceRecognition() :
 	create_database(reference_images_path,image_mode);
 
 	// interface
-	interfaces_ = new PlaceRecognitionInterfaces(nh_,private_nh_,database_,image_mode);
+	private_nh_.param("IS_RECORD",IS_RECORD_,{false});
+	interfaces_ = new PlaceRecognitionInterfaces(nh_,private_nh_,database_,image_mode,IS_RECORD_);
 	interfaces_->set_reference_image_path(reference_images_path);
 	interfaces_->set_detector(detector_);
 	interfaces_->set_reference_images(reference_images_);
 
-	img_pub_ = nh_.advertise<sensor_msgs::Image>("out_image",1);
+	private_nh_.param("PUBLISH_IMAGE",PUBLISH_IMAGE_,{false});
+	if(PUBLISH_IMAGE_) img_pub_ = nh_.advertise<sensor_msgs::Image>("out_image",1);
+}
+
+MultiPlaceRecognition::~MultiPlaceRecognition()
+{
+	if(IS_RECORD_){
+		std::string record_path;
+		private_nh_.param("RECORD_PATH",record_path,{std::string("")});
+		for(size_t i = 0; i < interfaces_->size(); i++){
+			std::string file_name = record_path + "pr_match_" + std::to_string(i+1) + ".csv";
+			std::ofstream ofs(file_name);
+			int match_count = 0;
+			for(size_t j = 0; j < interfaces_->at(i)->match_recorder_->size(); j++){
+				double error = interfaces_->at(i)->match_recorder_->at(j).get_error();
+				if(error > 1.5) match_count++;
+				ofs << interfaces_->at(i)->match_recorder_->at(j).time << ","
+				    << interfaces_->at(i)->match_recorder_->at(j).est_position.x << ","
+					<< interfaces_->at(i)->match_recorder_->at(j).est_position.y << ","
+					<< interfaces_->at(i)->match_recorder_->at(j).est_position.theta << ","
+					<< interfaces_->at(i)->match_recorder_->at(j).ref_position.x << ","
+					<< interfaces_->at(i)->match_recorder_->at(j).ref_position.y << ","
+					<< interfaces_->at(i)->match_recorder_->at(j).ref_position.theta << ","
+					<< error << std::endl;
+			}
+			std::cout << "Match Score[" << i << "]: " << (double)match_count/(double)interfaces_->at(i)->match_recorder_->size() << std::endl;
+			ofs.close();
+		}
+	}
 }
 
 void MultiPlaceRecognition::set_detector_mode(std::string detector_mode)
@@ -36,8 +65,8 @@ void MultiPlaceRecognition::set_detector_mode(std::string detector_mode)
     else if(detector_mode == "brisk") detector_ = cv::BRISK::create();
     else if(detector_mode == "akaze") detector_ = cv::AKAZE::create();
     else{
-        std::cerr << "No applicable 'detector_mode'. Please select 'orb', 'brisk' or 'akaze'" << std::endl;
-        std::cerr  << "Set 'orb'" << std::endl;
+		ROS_WARN("No applicable 'detector_mode'. Please select 'orb', 'brisk' or 'akaze'");
+		ROS_INFO("Set 'orb'");
         detector_ = cv::ORB::create();
     }
 }

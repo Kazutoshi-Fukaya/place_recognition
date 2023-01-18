@@ -3,18 +3,14 @@
 using namespace dbow3;
 using namespace place_recognition;
 
-PlaceRecognition::PlaceRecognition() :
-    private_nh_("~"),
-    detector_(cv::ORB::create()),
-    file_path_(std::string(""))
+PlaceRecognition::PlaceRecognition() : private_nh_("~")
 {
     private_nh_.param("REFERENCE_FILE_NAME",REFERENCE_FILE_PATH_,{std::string("")});
-    private_nh_.param("MODE",MODE_,{std::string("rgb")});
-    file_path_ = REFERENCE_FILE_PATH_ + MODE_ + "/dkan_mono.yml.gz";
+    private_nh_.param("IMAGE_MODE",IMAGE_MODE_,{std::string("rgb")});
 
-    private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
-    // private_nh_.param("IS_DEBUG",IS_DEBUG_,{false});
-    private_nh_.param("HZ",HZ_,{10});
+    std::string detector_mode;
+    private_nh_.param("DETECTOR_MODE",detector_mode,{std::string("orb")});
+    set_detector_mode(detector_mode);
 
     load_reference_images();
     create_database();
@@ -41,8 +37,8 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     detector_->detectAndCompute(cv_ptr->image,cv::Mat(),keypoints,descriptors);
 
     QueryResults ret;
-    db.query(descriptors,ret,4);
-    std::cout << ret << std::endl;
+    database_->query(descriptors,ret,4);
+    // std::cout << ret << std::endl << std::endl;
     if(ret.empty()) return;
 
     int id = ret.at(0).id;
@@ -69,6 +65,18 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     pose_pub_.publish(pose);
 }
 
+void PlaceRecognition::set_detector_mode(std::string detector_mode)
+{
+    if(detector_mode == "orb") detector_ = cv::ORB::create();
+    else if(detector_mode == "brisk") detector_ = cv::BRISK::create();
+    else if(detector_mode == "akaze") detector_ = cv::AKAZE::create();
+    else{
+		ROS_WARN("No applicable 'detector_mode'. Please select 'orb', 'brisk' or 'akaze'");
+		ROS_INFO("Set 'orb'");
+        detector_ = cv::ORB::create();
+    }
+}
+
 void PlaceRecognition::load_reference_images()
 {
     // load csv file
@@ -86,23 +94,30 @@ void PlaceRecognition::load_reference_images()
             double y = static_cast<double>(std::stod(strvec[3]));
             double theta = static_cast<double>(std::stod(strvec[4]));
 
-            cv::Mat equ_image = cv::imread(DIR_PATH_ + equ_name,0);
-            cv::Mat rgb_image = cv::imread(DIR_PATH_ + rgb_name,0);
-            if(equ_image.empty() || rgb_image.empty()) break;
-            std::cout << "file name: " << equ_name << std::endl;
-            std::cout << "file_name: " << rgb_name << std::endl;
-
-            // equ image
-            Image equ;
-            calc_features(equ,equ_name,equ_image);
-
-            // rgb image
-            Image rgb;
-            calc_features(rgb,rgb_name,rgb_image);
-
             Images images(x,y,theta);
-            images.set_equ_image(equ);
-            images.set_rgb_image(rgb);
+            if(IMAGE_MODE_ == "rgb"){
+                cv::Mat rgb_image = cv::imread(REFERENCE_FILE_PATH_ + rgb_name,0);
+                if(rgb_image.empty()) break;
+                // std::cout << "file_name: " << rgb_name << std::endl;
+
+                Image rgb;
+                calc_features(rgb,rgb_name,rgb_image);
+                images.set_rgb_image(rgb);
+            }
+            else if(IMAGE_MODE_ == "equ"){
+                cv::Mat equ_image = cv::imread(REFERENCE_FILE_PATH_ + equ_name,0);
+                if(equ_image.empty()) break;
+                // std::cout << "file name: " << equ_name << std::endl;
+                
+                Image equ;
+                calc_features(equ,equ_name,equ_image);
+                images.set_equ_image(equ);
+            }
+            else{
+                ROS_ERROR("Invalid Mode");
+                ROS_INFO("Please set 'rgb' or 'equ'");
+            }
+
             reference_images_.emplace_back(images);
         }
         catch(const std::invalid_argument& ex){
@@ -127,16 +142,19 @@ void PlaceRecognition::calc_features(Image& image,std::string name,cv::Mat img)
 void PlaceRecognition::create_database()
 {
     std::cout << "=== Load Database ===" << std::endl;
+    std::string file_path_ = REFERENCE_FILE_PATH_ + IMAGE_MODE_ + "/dkan_mono.yml.gz";
     std::cout << "load file: " << file_path_ << std::endl;
     Vocabulary voc(file_path_);
-    Database tmp_db(voc,false,0);
-    db = tmp_db;
+    database_ = new Database(voc,false,0);
 
-    // rgb
-    for(const auto &img : reference_images_) db.add(img.rgb.descriptor);
+    // add
+    for(const auto &img : reference_images_){
+        if(IMAGE_MODE_ == "rgb") database_->add(img.rgb.descriptor);
+        else if(IMAGE_MODE_ == "equ") database_->add(img.equ.descriptor);
+    }
 
     // info
-    db.get_info();
+    database_->get_info();
 }
 
 std::vector<std::string> PlaceRecognition::split(std::string& input,char delimiter)
@@ -148,14 +166,7 @@ std::vector<std::string> PlaceRecognition::split(std::string& input,char delimit
     return result;
 }
 
-void PlaceRecognition::process()
-{
-    ros::Rate rate(HZ_);
-    while(ros::ok()){
-        ros::spinOnce();
-        rate.sleep();
-    }
-}
+void PlaceRecognition::process() { ros::spin(); }
 
 int main(int argc,char** argv)
 {

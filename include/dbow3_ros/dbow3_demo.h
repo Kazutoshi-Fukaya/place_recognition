@@ -38,7 +38,7 @@ private:
 
     // param
     std::string DIR_PATH_;
-    std::string SAVE_FILE_;
+    std::string SAVE_FILE_NAME_;
 };
 } // namespace dbow3
 

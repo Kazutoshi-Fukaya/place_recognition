@@ -28,16 +28,10 @@ if(NOT OpenCV_FOUND)
     endif()
 endif()
 
-# CUDA
-# find_package(CUDA REQUIRED)
-# if(CUDA_FOUND)
-#     message("Cuda version: " ${CUDA_VERSION})
-# endif()
-
-# catkin_package(
-#     INCLUDE_DIRS include
-#     ${OpenCV_INCLUDE_DIRS}
-# )
+catkin_package(
+    INCLUDE_DIRS include
+    ${OpenCV_INCLUDE_DIRS}
+)
 
 include_directories(
     include
@@ -54,22 +48,6 @@ add_library(DBoW3 SHARED
     dbow3/query_results.cpp
     dbow3/bow_vector.cpp
     dbow3/database.cpp
-)
-
-# dbow3_demo
-add_executable(dbow3_demo src/dbow3_demo.cpp)
-target_link_libraries(dbow3_demo
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    DBoW3
-)
-
-# images_searcher
-add_executable(images_searcher src/images_searcher.cpp)
-target_link_libraries(images_searcher
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    DBoW3
 )
 
 # place_recognition
@@ -106,6 +84,14 @@ target_link_libraries(multi_place_recognition
 
 # ==================== UTILS ====================
 
+# dbow3_demo
+add_executable(dbow3_demo ros_utils/dbow3_demo.cpp)
+target_link_libraries(dbow3_demo
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
+)
+
 # keypoints_detector
 add_executable(keypoints_detector ros_utils/keypoints_detector.cpp)
 target_link_libraries(keypoints_detector
@@ -118,4 +104,12 @@ add_executable(reference_data_creator ros_utils/reference_data_creator.cpp)
 target_link_libraries(reference_data_creator
     ${catkin_LIBRARIES}
     ${OpenCV_LIBRARIES}
+)
+
+# image_searcher
+add_executable(image_searcher ros_utils/image_searcher.cpp)
+target_link_libraries(image_searcher
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    DBoW3
 )

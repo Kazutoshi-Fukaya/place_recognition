@@ -38,7 +38,7 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
 
     QueryResults ret;
     database_->query(descriptors,ret,4);
-    // std::cout << ret << std::endl << std::endl;
+    std::cout << ret << std::endl << std::endl;
     if(ret.empty()) return;
 
     int id = ret.at(0).id;
@@ -98,7 +98,7 @@ void PlaceRecognition::load_reference_images()
             if(IMAGE_MODE_ == "rgb"){
                 cv::Mat rgb_image = cv::imread(REFERENCE_FILE_PATH_ + rgb_name,0);
                 if(rgb_image.empty()) break;
-                // std::cout << "file_name: " << rgb_name << std::endl;
+                std::cout << "file_name: " << rgb_name << std::endl;
 
                 Image rgb;
                 calc_features(rgb,rgb_name,rgb_image);
@@ -107,7 +107,7 @@ void PlaceRecognition::load_reference_images()
             else if(IMAGE_MODE_ == "equ"){
                 cv::Mat equ_image = cv::imread(REFERENCE_FILE_PATH_ + equ_name,0);
                 if(equ_image.empty()) break;
-                // std::cout << "file name: " << equ_name << std::endl;
+                std::cout << "file name: " << equ_name << std::endl;
                 
                 Image equ;
                 calc_features(equ,equ_name,equ_image);
@@ -142,7 +142,7 @@ void PlaceRecognition::calc_features(Image& image,std::string name,cv::Mat img)
 void PlaceRecognition::create_database()
 {
     std::cout << "=== Load Database ===" << std::endl;
-    std::string file_path_ = REFERENCE_FILE_PATH_ + IMAGE_MODE_ + "/dkan_mono.yml.gz";
+    std::string file_path_ = REFERENCE_FILE_PATH_ + IMAGE_MODE_ + "/dkan_voc.yml.gz";
     std::cout << "load file: " << file_path_ << std::endl;
     Vocabulary voc(file_path_);
     database_ = new Database(voc,false,0);

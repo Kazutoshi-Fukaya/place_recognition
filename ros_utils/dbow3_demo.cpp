@@ -6,13 +6,13 @@ DBoW3Demo::DBoW3Demo() :
     private_nh_("~"),
     file_path_(std::string(""))
 {
-    std::string mode;
-    private_nh_.param("MODE",mode,{std::string("orb")});
-    set_detector_mode(mode);
+    std::string detector_mode;
+    private_nh_.param("DETECTOR_MODE",detector_mode,{std::string("orb")});
+    set_detector_mode(detector_mode);
 
     private_nh_.param("DIR_PATH",DIR_PATH_,{std::string("")});
-    private_nh_.param("SAVE_FILE",SAVE_FILE_,{std::string("small_voc.yml.gz")});
-    file_path_ = DIR_PATH_ + "small_voc.yml.gz";
+    private_nh_.param("SAVE_FILE_NAME",SAVE_FILE_NAME_,{std::string("small_voc.yml.gz")});
+    file_path_ = DIR_PATH_ + SAVE_FILE_NAME_;
     std::cout << file_path_ << std::endl;
 }
 
@@ -22,8 +22,8 @@ void DBoW3Demo::set_detector_mode(std::string mode)
     else if(mode == "brisk") detector_ = cv::BRISK::create();
     else if(mode == "akaze") detector_ = cv::AKAZE::create();
     else{
-        std::cerr << "No applicable mode. Please select 'orb', 'brisk' or 'akaze'" << std::endl;
-        std::cerr  << "Set 'orb" << std::endl;
+        ROS_INFO("No applicable mode. Please select 'orb', 'brisk' or 'akaze'");
+        ROS_INFO("Set 'orb");
         detector_ = cv::ORB::create();
     }
 }

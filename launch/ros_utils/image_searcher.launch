@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- image_searcher -->
+    <node pkg="place_recognition" type="image_searcher" name="image_searcher" output="screen" >
+        <!-- params -->
+        <param name="DETECTOR_MODE"       value="orb" />
+        <param name="IMAGE_MODE"          value="rgb" />
+        <param name="QUERY_IMAGE_NAME"    value="$(find place_recognition)/reference_data/rgb/image42.jpg" />
+        <param name="REFERENCE_FILE_PATH" value="$(find place_recognition)/reference_data/" />
+    </node>
+
+</launch>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="dir_path" default="$(find place_recognition)/reference_data" />
+
+    <!-- dbow3_demo -->
+    <node pkg="place_recognition" type="dbow3_demo" name="dbow3_demo" output="screen" >
+        <!-- params -->
+        <param name="SAVE_FILE_NAME" value="dkan_voc.yml.gz" />
+
+        <!-- <param name="DIR_PATH"       value="$(arg dir_path)/rgb/" /> -->
+        <param name="DIR_PATH"       value="$(arg dir_path)/equ/" />
+    </node>
+
+</launch>

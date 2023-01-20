@@ -27,17 +27,11 @@ private:
     void load_reference_images(std::string reference_images_path,std::string image_mode);
     void calc_features(Image& image,std::string name,cv::Mat img);
     void create_database(std::string reference_images_path,std::string image_mode);
-
     std::vector<std::string> split(std::string& input,char delimiter);
-
-    void publish_result();
 
     // node handler
     ros::NodeHandle nh_;
     ros::NodeHandle private_nh_;
-
-    // publisher
-    ros::Publisher img_pub_;
 
     // database
     dbow3::Database* database_;
@@ -54,8 +48,6 @@ private:
     // param
     std::string IMAGE_MODE_;
     bool IS_RECORD_;
-    bool PUBLISH_IMAGE_;
-    int HZ_;
 };
 } // namespace place_recognition
 

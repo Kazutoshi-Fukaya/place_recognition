@@ -16,9 +16,14 @@ PlaceRecognition::PlaceRecognition() : private_nh_("~")
     create_database();
 
     img_sub_ = nh_.subscribe("img_in",1,&PlaceRecognition::image_callback,this);
-    img_pub_ = nh_.advertise<sensor_msgs::Image>("img_out",1);
-    
-    pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_out",1);
+
+    private_nh_.param("PUBLISH_IMG",PUBLISH_IMG_,{true});
+    if(PUBLISH_IMG_) img_pub_ = nh_.advertise<sensor_msgs::Image>("img_out",1);
+
+    private_nh_.param("PUBLISH_POSE",PUBLISH_POSE_,{true});
+    if(PUBLISH_POSE_) pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("pose_out",1);
+
+    pr_pose_pub_ = nh_.advertise<place_recognition_msgs::PoseStamped>("pr_pose_out",1);
 }
 
 void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
@@ -38,7 +43,7 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
 
     QueryResults ret;
     database_->query(descriptors,ret,4);
-    std::cout << ret << std::endl << std::endl;
+    // std::cout << ret << std::endl << std::endl;
     if(ret.empty()) return;
 
     int id = ret.at(0).id;
@@ -46,23 +51,37 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     cv::Mat output_img = cv::imread(name);
     if(output_img.empty()) return;
 
-    sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(),"bgr8",output_img).toImageMsg();
-    img_pub_.publish(img_msg);
+    if(PUBLISH_IMG_){
+        sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(),"bgr8",output_img).toImageMsg();
+        img_pub_.publish(img_msg);
+    }
 
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "map";
-    pose.header.stamp = ros::Time::now();
-    pose.pose.position.x = reference_images_.at(id).x;
-    pose.pose.position.y = reference_images_.at(id).y;
-    pose.pose.position.z = 0;
-    tf2::Quaternion tf_q;
-    tf_q.setRPY(0.0,0.0,reference_images_.at(id).theta);
-    pose.pose.orientation.w = tf_q.w();
-    pose.pose.orientation.x = tf_q.x();
-    pose.pose.orientation.y = tf_q.y();
-    pose.pose.orientation.z = tf_q.z();
 
-    pose_pub_.publish(pose);
+    ros::Time now_time = ros::Time::now();
+    if(PUBLISH_POSE_){
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "map";
+        pose.header.stamp = now_time;
+        pose.pose.position.x = reference_images_.at(id).x;
+        pose.pose.position.y = reference_images_.at(id).y;
+        pose.pose.position.z = 0;
+        tf2::Quaternion tf_q;
+        tf_q.setRPY(0.0,0.0,reference_images_.at(id).theta);
+        pose.pose.orientation.w = tf_q.w();
+        pose.pose.orientation.x = tf_q.x();
+        pose.pose.orientation.y = tf_q.y();
+        pose.pose.orientation.z = tf_q.z();
+        pose_pub_.publish(pose);
+    }
+
+    place_recognition_msgs::PoseStamped pr_pose;
+    pr_pose.header.frame_id = "map";
+    pr_pose.header.stamp = now_time;
+    pr_pose.score = ret.at(0).score;
+    pr_pose.x = reference_images_.at(id).x;
+    pr_pose.y = reference_images_.at(id).y;
+    pr_pose.theta = reference_images_.at(id).theta;
+    pr_pose_pub_.publish(pr_pose);
 }
 
 void PlaceRecognition::set_detector_mode(std::string detector_mode)
@@ -71,8 +90,8 @@ void PlaceRecognition::set_detector_mode(std::string detector_mode)
     else if(detector_mode == "brisk") detector_ = cv::BRISK::create();
     else if(detector_mode == "akaze") detector_ = cv::AKAZE::create();
     else{
-		ROS_WARN("No applicable 'detector_mode'. Please select 'orb', 'brisk' or 'akaze'");
-		ROS_INFO("Set 'orb'");
+        ROS_WARN("No applicable 'detector_mode'. Please select 'orb', 'brisk' or 'akaze'");
+        ROS_INFO("Set 'orb'");
         detector_ = cv::ORB::create();
     }
 }
@@ -108,7 +127,7 @@ void PlaceRecognition::load_reference_images()
                 cv::Mat equ_image = cv::imread(REFERENCE_FILE_PATH_ + equ_name,0);
                 if(equ_image.empty()) break;
                 std::cout << "file name: " << equ_name << std::endl;
-                
+
                 Image equ;
                 calc_features(equ,equ_name,equ_image);
                 images.set_equ_image(equ);
@@ -121,7 +140,7 @@ void PlaceRecognition::load_reference_images()
             reference_images_.emplace_back(images);
         }
         catch(const std::invalid_argument& ex){
-            std::cerr << "Invalid: " << ex.what() << std::endl;
+            ROS_ERROR("Invalid: %s", ex.what());
         }
         catch(const std::out_of_range& ex){
             ROS_ERROR("out of range: %s", ex.what());

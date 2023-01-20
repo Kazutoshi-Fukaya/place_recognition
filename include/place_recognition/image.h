@@ -38,4 +38,4 @@ private:
 };
 } // namespace place_recognition
 
-#endif	// IMAGE_H_
+#endif  // IMAGE_H_

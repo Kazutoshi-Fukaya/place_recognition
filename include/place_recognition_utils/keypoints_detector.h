@@ -38,4 +38,4 @@ private:
 };
 }
 
-#endif	// KEYPOINTS_DETECTOR_H_
+#endif  // KEYPOINTS_DETECTOR_H_

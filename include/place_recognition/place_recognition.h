@@ -11,6 +11,8 @@
 #include "dbow3/database/database.h"
 #include "place_recognition/images.h"
 
+#include "place_recognition_msgs/PoseStamped.h"
+
 namespace place_recognition
 {
 class PlaceRecognition
@@ -38,6 +40,7 @@ private:
     // publisher
     ros::Publisher img_pub_;
     ros::Publisher pose_pub_;
+    ros::Publisher pr_pose_pub_;
 
     // database
     dbow3::Database* database_;
@@ -50,8 +53,10 @@ private:
 
     // param
     std::string REFERENCE_FILE_PATH_;
-	std::string IMAGE_MODE_;
+    std::string IMAGE_MODE_;
+    bool PUBLISH_IMG_;
+    bool PUBLISH_POSE_;
 };
 } // namespace place_recognition
 
-#endif	// PLACE_RECOGNITION_H_
+#endif  // PLACE_RECOGNITION_H_

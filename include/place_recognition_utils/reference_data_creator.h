@@ -68,7 +68,7 @@ private:
     Inpaintor* inpaintor_;
 
     // buffer
-	ReferenceData reference_data_;
+    ReferenceData reference_data_;
     ros::Time start_time_;
     geometry_msgs::PoseStamped pose_;
     cv::Mat equ_img_;
@@ -84,4 +84,4 @@ private:
 } // namespace place_recognition
 
 
-#endif	// REFERENCE_DATA_CREATOR_H_
+#endif  // REFERENCE_DATA_CREATOR_H_

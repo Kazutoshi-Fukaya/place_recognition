@@ -45,9 +45,9 @@ private:
     // param
     std::string DIR_PATH_;
     std::string REFERENCE_FILE_PATH_;
-	std::string QUERY_FILE_PATH_;
-	std::string MODE_;
+    std::string QUERY_FILE_PATH_;
+    std::string MODE_;
 };
 } // namespace place_recognition
 
-#endif	// BATCH_PLACE_RECOGNITION_H_
+#endif  // BATCH_PLACE_RECOGNITION_H_

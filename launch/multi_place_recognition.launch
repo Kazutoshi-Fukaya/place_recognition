@@ -28,11 +28,4 @@
         <rosparam command="load" file="$(arg config_path)/params/robot_list.yaml" />
     </node>
 
-    <!-- rviz -->
-    <arg name="is_rviz" default="true" />
-    <group if="$(arg is_rviz)" >
-        <arg name="rviz_wait_time" default="30.0" />
-        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/multi_place_recognition/rviz.rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'" />
-    </group>
-
 </launch>

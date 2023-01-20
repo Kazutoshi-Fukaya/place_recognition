@@ -55,7 +55,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /img_out
+      Image Topic: /roomba1/output_image
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -78,7 +78,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
-      Topic: /pose_out
+      Topic: /roomba1/output_pose
       Unreliable: false
       Value: true
     - Alpha: 1

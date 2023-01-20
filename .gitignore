@@ -1,2 +1,2 @@
-.vscode
-/reference_data/
+*.vscode
+place_recognition/reference_data/

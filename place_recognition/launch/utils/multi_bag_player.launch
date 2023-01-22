@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="date"      default="20220630" />
     <arg name="wait_time" default="25.0" />
 
     <!-- roomba1 (equirectangular_convertor, rosbag) -->
@@ -10,6 +11,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba1" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- roomba2 (equirectangular_convertor, rosbag) -->
@@ -20,6 +22,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba2" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- roomba3 (equirectangular_convertor, rosbag) -->
@@ -30,6 +33,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba3" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- roomba4 (equirectangular_convertor, rosbag) -->
@@ -40,6 +44,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba4" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- roomba5 (equirectangular_convertor, rosbag) -->
@@ -50,6 +55,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba5" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- roomba6 (equirectangular_convertor, rosbag) -->
@@ -60,6 +66,7 @@
         <arg name="is_rviz"              value="false" />
         <arg name="roomba"               value="roomba6" />
         <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
 </launch>

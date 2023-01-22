@@ -5,9 +5,7 @@ add_compile_options(-o2 -g -Wall)
 
 find_package(catkin REQUIRED COMPONENTS
     cv_bridge
-    eigen_conversions
-    image_transport
-    multi_robot_msgs
+    dom_estimator_msgs
     object_detector_msgs
     place_recognition_msgs
     roscpp

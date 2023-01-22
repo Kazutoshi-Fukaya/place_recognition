@@ -2,6 +2,7 @@
 <launch>
     <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
+    <arg name="date"        default="20220630" />
     <arg name="wait_time"   default="15.0" />
 
     <!--map_server -->
@@ -13,9 +14,10 @@
     <!-- roomba1 ~ 6 (equirectangular_convertor, rosbag) -->
     <include file="$(find place_recognition)/launch/utils/multi_bag_player.launch" >
         <arg name="wait_time" value="$(arg wait_time)" />
+        <arg name="date"      value="$(arg date)" />
     </include>
 
-    <!-- image_creator -->
+    <!-- multi_place_recognition -->
     <node pkg="place_recognition" type="multi_place_recognition" name="multi_place_recognition" output="screen" >
         <!-- params -->
         <param name="DETECTOR_MODE"         value="orb" />

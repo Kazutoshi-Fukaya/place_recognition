@@ -4,7 +4,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <tf2/utils.h>
 
-#include "multi_robot_msgs/Doms.h"
+#include "dom_estimator_msgs/Doms.h"
 #include "object_detector_msgs/ObjectPositions.h"
 
 #include <random>
@@ -88,7 +88,7 @@ public:
 
 private:
     void image_callback(const sensor_msgs::ImageConstPtr& msg);
-    void dom_callback(const multi_robot_msgs::DomsConstPtr& msg);
+    void dom_callback(const dom_estimator_msgs::DomsConstPtr& msg);
     void obj_callback(const object_detector_msgs::ObjectPositionsConstPtr& msg);
 
     void load_reference_images();
@@ -128,7 +128,7 @@ private:
     std::mt19937 engine_;
 
     // buffer
-    multi_robot_msgs::Doms doms_;
+    dom_estimator_msgs::Doms doms_;
     object_detector_msgs::ObjectPositions obj_;
     geometry_msgs::PoseStamped last_pose_;
     std::vector<ObjectTime> objects_time_;
@@ -244,10 +244,7 @@ void PlaceRecognition::image_callback(const sensor_msgs::ImageConstPtr& msg)
     pose_pub_.publish(pose);
 }
 
-void PlaceRecognition::dom_callback(const multi_robot_msgs::DomsConstPtr& msg)
-{
-    doms_ = *msg;
-}
+void PlaceRecognition::dom_callback(const dom_estimator_msgs::DomsConstPtr& msg) { doms_ = *msg; }
 
 void PlaceRecognition::obj_callback(const object_detector_msgs::ObjectPositionsConstPtr& msg)
 {

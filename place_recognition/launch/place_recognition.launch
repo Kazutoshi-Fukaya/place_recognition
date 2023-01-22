@@ -2,6 +2,7 @@
 <launch>
     <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
+    <arg name="date"        default="20220630" />
 
     <!--map_server -->
     <arg name="is_map" default="true" />
@@ -20,6 +21,7 @@
 
         <!-- param -->
         <arg name="roomba"               value="$(arg roomba)" />
+        <arg name="date"                 value="$(arg date)" />
     </include>
 
     <!-- place_recognition -->

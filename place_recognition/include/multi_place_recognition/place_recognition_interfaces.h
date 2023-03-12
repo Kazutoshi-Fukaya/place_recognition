@@ -40,7 +40,6 @@ public:
         // pose publisher (result)
         std::string pose_topic_name = name + "/pr_pose";
         pose_pub_ = nh_.advertise<place_recognition_msgs::PoseStamped>(pose_topic_name,1);
-
     }
 
     void set_reference_image_path(std::string path) { REFERENCE_IMAGES_PATH_ = path; }
@@ -113,7 +112,6 @@ private:
         pose.x = reference_images_.at(id).x;
         pose.y = reference_images_.at(id).y;
         pose.theta = reference_images_.at(id).theta;
-
         pose_pub_.publish(pose);
     }
 
@@ -172,8 +170,7 @@ public:
     void set_reference_images(std::vector<Images> reference_images)
     {
         reference_images_ = reference_images;
-        for(size_t i = 0; i < this->size(); i++){
-            this->at(i)->set_reference_images(reference_images);
+        for(size_t i = 0; i < this->size(); i++){this->at(i)->set_reference_images(reference_images);
         }
     }
 
@@ -207,7 +204,6 @@ public:
 
             return base;
         }
-        // "equ" mode TO DO
     }
 
 private:

@@ -1,22 +1,24 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
-    <arg name="date"        default="20220630" />
     <arg name="wait_time"   default="15.0" />
 
-    <!--map_server -->
+    <!-- map_server -->
     <arg name="is_map" default="true" />
     <group if="$(arg is_map)" >
-        <node pkg="map_server" type="map_server" name="map" args="$(find multi_localizer)/config/map/static_map.yaml" />
+        <include file="$(find ros_utils)/launch/map_server.launch" />
     </group>
 
-    <!-- roomba1 ~ 6 (equirectangular_convertor, rosbag) -->
-    <include file="$(find place_recognition)/launch/utils/multi_bag_player.launch" >
-        <arg name="wait_time" value="$(arg wait_time)" />
-        <arg name="date"      value="$(arg date)" />
+    <!-- rosbag(roomba1~roomba6) -->
+    <include file="$(find ros_utils)/launch/20220630.launch" >
+        <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="convertor_theta_s"    value="true" />
+        <arg name="publish_objects_data" value="false" />
     </include>
 
+    <!-- images_connector -->
+    <include file="$(find ros_utils)/launch/images_connector.launch" />
+    
     <!-- multi_place_recognition -->
     <node pkg="place_recognition" type="multi_place_recognition" name="multi_place_recognition" output="screen" >
         <!-- params -->
@@ -24,10 +26,16 @@
         <param name="IMAGE_MODE"            value="rgb" />
         <param name="REFERENCE_IMAGES_PATH" value="$(find place_recognition)/reference_data/" />
         <param name="IS_RECORD"             value="false" />
-        <param name="RECORD_PATH"           value="$(find place_recognition)/record/match_record/" />
+        <param name="RECORD_PATH"           value="$(find place_recognition)/record/match/" />
 
         <!-- rosparams -->
-        <rosparam command="load" file="$(arg config_path)/params/robot_list.yaml" />
+        <rosparam command="load" file="$(find place_recognition)/config/params/robot_list.yaml" />
     </node>
+
+    <arg name="is_rviz" default="true" />
+    <group if="$(arg is_rviz)" >
+        <arg name="rviz_wait_time" default="16.0" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg config_path)/rviz/multi_place_recognition/multi_place_recognition.rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'"/>
+    </group>
 
 </launch>

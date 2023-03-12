@@ -2,26 +2,21 @@
 <launch>
     <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
-    <arg name="date"        default="20220630" />
+    <arg name="wait_time"   default="15.0" />
 
-    <!--map_server -->
+    <!-- map_server -->
     <arg name="is_map" default="true" />
     <group if="$(arg is_map)" >
-        <node pkg="map_server" type="map_server" name="map" args="$(find multi_localizer)/config/map/static_map.yaml" />
+        <include file="$(find ros_utils)/launch/map_server.launch" />
     </group>
 
-    <!-- equirectangular_convertor, rosbag -->
-    <include file="$(find place_recognition)/launch/utils/equirectangular_convertor.launch" >
-        <!-- default -->
-        <arg name="is_bag"               value="true" />
-        <arg name="theta_s_mode"         value="0" />
-        <arg name="is_theta_s_visualize" value="false" />
-        <arg name="is_rviz"              value="false" />
-        <arg name="wait_time"            value="15.0" />
-
-        <!-- param -->
+    <!-- rosbag -->
+    <include file="$(find ros_utils)/launch/bag_player.launch" >
         <arg name="roomba"               value="$(arg roomba)" />
-        <arg name="date"                 value="$(arg date)" />
+        <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="file_path"            value="$(env HOME)/bagfiles/experimental_file_20220224/" />
+        <arg name="convertor_theta_s"    value="true" />
+        <arg name="publish_objects_data" value="false" />
     </include>
 
     <!-- place_recognition -->
@@ -31,9 +26,9 @@
         <!-- remap -->
         <!-- <remap from="img_in" to="roomba5/equirectangular/image_raw" /> -->
         <remap from="img_in"      to="$(arg roomba)/camera/color/image_rect_color" />
-        <remap from="img_out"     to="$(arg roomba)/output_image" />
-        <remap from="pose_out"    to="$(arg roomba)/output_pose" />
         <remap from="pr_pose_out" to="$(arg roomba)/pr_pose" />
+        <remap from="img_out"     to="$(arg roomba)/vis_image" />
+        <remap from="pose_out"    to="$(arg roomba)/vis_pr_pose" />
 
         <!-- params -->
         <param name="REFERENCE_FILE_NAME" value="$(find place_recognition)/reference_data/" />

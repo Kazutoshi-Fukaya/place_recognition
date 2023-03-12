@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="roomba"    default="roomba1" />
+    <arg name="load_file_path" default="$(env HOME)/../../media/amsl/ef88e1a9-c1cf-4f57-8b27-ab40a1bf1d68/home/amsl/bagfiles/six_roomba_spread_20220630_image/$(arg roomba)" />
+
+    <!-- map_server -->
+    <arg name="is_map" default="true" />
+    <group if="$(arg is_map)" >
+        <include file="$(find ros_utils)/launch/map_server.launch" />
+    </group>
+
+    <!-- mismatch_calculator -->
+    <node pkg="place_recognition" type="mismatch_calculator" name="mismatch_calculator" output="screen">
+        <!-- params -->
+        <param name="HZ"             value="10" />
+        <param name="ERROR_TH"       value="1.5" />
+        <param name="LOAD_FILE_NAME" value="$(arg load_file_path)/rgb_result.txt" />
+
+        <!-- params (for record) -->
+        <param name="IS_RECORD"        value="false" />
+        <param name="RECORD_FILE_PATH" value="$(find place_recognition)/record/mismatch/$(arg roomba)" />
+    </node>
+
+    <!-- rviz -->
+    <arg name="is_rviz" default="true" />
+    <group if="$(arg is_rviz)" >
+        <arg name="rviz_wait_time" default="0.0" />
+        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(find place_recognition)/config/rviz/mismatch/mismatch.rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'"/>
+    </group>
+
+</launch>

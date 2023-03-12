@@ -75,7 +75,7 @@ void BatchPlaceRecognition::calc_features(Image& image,std::string name,cv::Mat 
 void BatchPlaceRecognition::create_database()
 {
     std::cout << "=== Load Database ===" << std::endl;
-    std::string file_name = REFERENCE_FILE_PATH_ + MODE_ + "/dkan_mono.yml.gz";
+    std::string file_name = REFERENCE_FILE_PATH_ + MODE_ + "/dkan_voc.yml.gz";
     std::cout << "load file: " << file_name << std::endl;
     Vocabulary voc(file_name);
     Database tmp_db(voc,false,0);

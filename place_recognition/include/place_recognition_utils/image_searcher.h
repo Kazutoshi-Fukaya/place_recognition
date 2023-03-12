@@ -1,3 +1,6 @@
+#ifndef IMAGE_SEARCHER_H_
+#define IMAGE_SEARCHER_H_
+
 #include <ros/ros.h>
 
 #include "dbow3/vocabulary/vocabulary.h"
@@ -40,3 +43,5 @@ private:
     std::string IMAGE_MODE_;
 };
 } // namespace place_recognition
+
+#endif  // IMAGE_SEARCHER_H_

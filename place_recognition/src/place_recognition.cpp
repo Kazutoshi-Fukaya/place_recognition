@@ -150,6 +150,7 @@ void PlaceRecognition::load_reference_images()
     std::cout << std::endl;
 }
 
+
 void PlaceRecognition::calc_features(Image& image,std::string name,cv::Mat img)
 {
     std::vector<cv::KeyPoint> keypoints;

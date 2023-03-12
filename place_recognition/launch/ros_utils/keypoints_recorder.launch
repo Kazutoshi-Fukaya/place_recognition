@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="roomba"      default="roomba1" />
+    <arg name="is_record"   default="false" />
+    <arg name="config_path" default="$(find place_recognition)/config" />
+    <arg name="file_path"   default="$(env HOME)/../../media/amsl/ef88e1a9-c1cf-4f57-8b27-ab40a1bf1d68/home/amsl/bagfiles/six_roomba_spread_20220630_image" />
+
+    <!-- rosbag -->
+    <include file="$(find ros_utils)/launch/bag_player.launch" >
+        <arg name="roomba"               value="$(arg roomba)" />
+        <arg name="wait_time"            value="0.0" />
+        <arg name="file_path"            value="$(env HOME)/bagfiles/experimental_file_20220630/" />
+        <arg name="convertor_theta_s"    value="true" />
+        <arg name="publish_objects_data" value="false" />
+    </include>
+
+    <!-- keypoints_recorder -->
+    <node pkg="place_recognition" type="keypoints_recorder" name="keypoints_recorder" >
+        <!-- remap -->
+        <remap from="img_in"  to="$(arg roomba)/camera/color/image_rect_color" />
+        <remap from="img_out" to="$(arg roomba)/orb_image" />
+
+        <!-- params -->
+        <param name="FILE_PATH" value="$(arg file_path)/$(arg roomba)" />
+        <param name="IS_RECORD" value="$(arg is_record)" />
+    </node>
+
+	<!-- rviz -->
+    <arg name="is_rviz" default="true" />
+    <group if="$(arg is_rviz)" >
+        <arg name="rviz_wait_time" default="0.0" />
+        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/keypoints_recorder/$(arg roomba).rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'"/>
+    </group>
+
+</launch>

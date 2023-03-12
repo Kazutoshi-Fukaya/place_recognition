@@ -78,10 +78,7 @@ private:
     // params
     std::string FILE_PATH_;
     int HZ_;
-
 };
-
 } // namespace place_recognition
-
 
 #endif  // REFERENCE_DATA_CREATOR_H_

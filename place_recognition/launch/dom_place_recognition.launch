@@ -1,45 +1,50 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="roomba"      default="roomba1" />
     <arg name="config_path" default="$(find place_recognition)/config" />
+    <arg name="wait_time"   default="15.0" />
 
-    <!--map_server -->
-    <arg name="is_map" default="false" />
+    <!-- rosbag(roomba1~roomba6) -->
+    <include file="$(find ros_utils)/launch/20220630.launch" >
+        <arg name="wait_time"            value="$(arg wait_time)" />
+        <arg name="convertor_theta_s"    value="true" />
+        <arg name="publish_objects_data" value="false" />
+    </include>
+
+    <!-- map server (for visualizing) -->
+    <arg name="is_map" default="true" />
     <group if="$(arg is_map)" >
-        <node pkg="map_server" type="map_server" name="map" args="$(find multi_localizer)/config/map/static_map.yaml" />
+        <include file="$(find ros_utils)/launch/map_server.launch" />
     </group>
 
-    <!-- equirectangular_convertor, rosbag -->
-    <include file="$(find place_recognition)/launch/utils/equirectangular_convertor.launch" >
-        <arg name="is_bag"               value="false" />
-        <arg name="theta_s_mode"         value="0" />
-        <arg name="is_theta_s_visualize" value="false" />
-        <arg name="is_rviz"              value="false" />
-        <arg name="roomba"               value="$(arg roomba)" />
-    </include>
+    <!-- image_connector (for visualizing) -->
+    <include file="$(find ros_utils)/launch/images_connector.launch" />
 
     <!-- dom_estimator -->
-    <include file="$(find dom_estimator)/launch/dom_estimator.launch" >
-        <arg name="wait_time" value="25.0" />
-        <arg name="is_rviz"   value="false" />
+    <include file="$(find dom_estimator)/launch/dom_estimator_node.launch" >
+        <param name="is_debug"  value="false" />
+        <param name="is_record" value="false"/>
     </include>
 
-    <!-- image_creator -->
+    <!-- dom_place_recognition -->
     <node pkg="place_recognition" type="dom_place_recognition" name="dom_place_recognition" output="screen" >
-        <!-- remap -->
-        <!-- <remap from="img_in" to="roomba5/equirectangular/image_raw" /> -->
-        <remap from="img_in" to="$(arg roomba)/camera/color/image_rect_color" />
-        <remap from="obj_in" to="$(arg roomba)/object_positions" />
-
         <!-- params -->
-        <param name="DIR_PATH"  value="$(find place_recognition)/reference_data/" />
-        <param name="REFERENCE_FILE_NAME" value="$(find place_recognition)/reference_data/" />
+        <param name="HZ"                    value="10" />
+        <param name="DETECTOR_MODE"         value="orb" />
+        <param name="IMAGE_MODE"            value="rgb" />
+        <param name="REFERENCE_IMAGES_PATH" value="$(find place_recognition)/reference_data/" />
+        <param name="IS_RECORD"             value="false" />
+        <param name="IS_VIS"                value="true" />
+        <param name="RECORD_PATH"           value="$(find place_recognition)/record/match/" />
+
+        <!-- rosparams -->
+        <rosparam command="load" file="$(find place_recognition)/config/params/robot_list.yaml" />
     </node>
 
     <!-- rviz -->
     <arg name="is_rviz" default="true" />
     <group if="$(arg is_rviz)" >
-        <node pkg="rviz" type="rviz" name="$(arg roomba)_rviz" args="-d $(arg config_path)/rviz/dom_place_recognition/$(arg roomba).rviz" />
+        <arg name="rviz_wait_time" default="16.0" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg config_path)/rviz/dom_place_recognition/dom_place_recognition.rviz" launch-prefix="bash -c 'sleep $(arg rviz_wait_time); $0 $@'"/>
     </group>
-
+   
 </launch>

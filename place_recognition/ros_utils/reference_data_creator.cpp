@@ -30,14 +30,18 @@ ReferenceDataCreator::ReferenceDataCreator() :
 
 ReferenceDataCreator::~ReferenceDataCreator()
 {
-    std::string save_file_path;
-    static std::ofstream ofs(FILE_PATH_ + "/save.txt");
-    for(auto it = reference_data_.begin(); it != reference_data_.end(); it++){
-        ofs << it->equ_file_path << ","
-            << it->rgb_file_path << ","
-            << it->x << "," << it->y << "," << it->theta << std::endl;
+    bool is_record;
+    private_nh_.param("IS_RECORD",is_record,{false});
+    if(is_record){
+        std::string save_file_path;
+        static std::ofstream ofs(FILE_PATH_ + "/save.txt");
+        for(auto it = reference_data_.begin(); it != reference_data_.end(); it++){
+            ofs << it->equ_file_path << ","
+                << it->rgb_file_path << ","
+                << it->x << "," << it->y << "," << it->theta << std::endl;
+        }
+        ofs.close();
     }
-    ofs.close();
 }
 
 void ReferenceDataCreator::equ_image_callback(const sensor_msgs::ImageConstPtr& msg)

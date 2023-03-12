@@ -56,6 +56,8 @@ public:
         this->emplace_back(MatchRecord(t,est_pos,ref_pos));
     }
 
+    void set_error_th(double _error_th) { ERROR_TH = _error_th;}
+
 private:
     double ERROR_TH = 1.5;
 };
